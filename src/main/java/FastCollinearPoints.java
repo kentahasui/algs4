@@ -41,22 +41,32 @@ public class FastCollinearPoints {
     // Stores input points, naturally ordered (by y-coord, then by x-coord)
     private final Point[] naturalOrdered;
 
-
+    // Number of segments found
     private int numSegments;
-    // Line Segments by destination
-    private LinkedQueue<Point>[] segmentsByDestination;
 
-    // Collinear line segments
-    private final LinkedQueue<LineSegment> segments = new LinkedQueue<>();
+    // Maps Destination points to all
+    /*
+     * Running collection of Collinear Line Segments.
+     * Formally, for all
+     */
+    private LinkedQueue<Point>[] sourcesByDestination;
 
     /**
-     * Constructor
-     * @param points An unsorted array of {@link Point} objects
+     * Constructor.
+     * @param points An array of {@link Point} objects. Can be sorted or unsorted.
+     * @throws IllegalArgumentException if any of the below hold:
+     *
+     * <ul>
+     *     <li>points is null</li>
+     *     <li>points contains a null element</li>
+     *     <li>points contains a repeated point</li>
+     * </ul>
      */
     public FastCollinearPoints(Point[] points){
         validateArrayIsNotNull(points);              // O(1)
         validateNoElementInArrayIsNull(points);      // O(N)
 
+        numSegments = 0;
         numPoints = points.length;                   // O(1)
         naturalOrdered = points.clone();             // O(N)
         Arrays.sort(naturalOrdered);                 // O(NlgN)
@@ -67,14 +77,14 @@ public class FastCollinearPoints {
         // Core work
         findCollinearPoints();                       // O(N^2lgN)
 
-        System.out.printf("%s\n\n", Arrays.toString(segments()));
+        System.out.printf("All segments: [%s] %s\n\n", numberOfSegments(), Arrays.toString(segments()));
     }
 
     private void initSegmentsByDestination(){
         // Unchecked cast OK for new Array of parameterized type
-        segmentsByDestination = new LinkedQueue[numPoints];
+        sourcesByDestination = new LinkedQueue[numPoints];
         for (int i=0; i<numPoints; i++){
-            segmentsByDestination[i] = new LinkedQueue<>();
+            sourcesByDestination[i] = new LinkedQueue<>();
         }
     }
 
@@ -88,23 +98,23 @@ public class FastCollinearPoints {
      *
      */
     private void findCollinearPoints(){
-        System.out.printf("Sorted array: %s\n\n", Arrays.toString(naturalOrdered));
+//        System.out.printf("Sorted array: %s\n\n", Arrays.toString(naturalOrdered));
 
-        // N * (O(NlgN) + O(N)) = O(N^2lgN) + O(N^2) ~ O(N^2lgN)
+        // (N-4) * (O(NlgN) + O(N)) = O(N^2lgN) + O(N^2) ~ O(N^2lgN)
         // Iterate until there are only 4 points
         for (int sourceIndex = 0; sourceIndex <= numPoints - SEGMENT_LENGTH_THRESHOLD; sourceIndex++){
             // Accumulator for collinear points
             PointAccumulator acc = new PointAccumulator(naturalOrdered, sourceIndex);
 
             // Process remaining points, sorted by slope to source
-            // EXCLUDE source point
+            // EXCLUDES source point
             Point[] slopeOrdered = Arrays.copyOfRange(
                     naturalOrdered, sourceIndex+1, numPoints);  // O(N), but in practice will be N-1 + N - 2 ... 3 in total
 
             // Sort the remaining points by the slope to the source
-            Arrays.sort(slopeOrdered, acc.source.slopeOrder());
+            Arrays.sort(slopeOrdered, acc.source.slopeOrder());      // O(NlgN)
 
-            System.out.println("Source " + acc.source  + ": " + Arrays.toString(slopeOrdered));
+//            System.out.printf("\nSource %s: %s\n", acc.source, Arrays.toString(slopeOrdered));
 
             findCollinearPointsForGivenSource(slopeOrdered, acc); // O(N)
         }
@@ -116,7 +126,7 @@ public class FastCollinearPoints {
      *
      * @param slopeOrdered Points sorted by slope to a specific source point.
      *                     Does NOT contain the source point.
-     * @param pointAcc Pointer to first and last points in the line segment
+     * @param pointAcc Pointer to first and dest points in the line segment
      */
     private void findCollinearPointsForGivenSource(Point[] slopeOrdered, PointAccumulator pointAcc) {
         // Iterate through all remaining points
@@ -124,7 +134,7 @@ public class FastCollinearPoints {
             Point current = slopeOrdered[destIndex];
             double slope = pointAcc.source.slopeTo(current);
 
-            System.out.printf("Processing point %s -> %s [slope %s]\n", pointAcc.source, current, slope);
+//            System.out.printf("Processing point %s -> %s [slope %s]\n", pointAcc.source, current, slope);
 
             // Add point to line segment if slopes are equal
             if (pointAcc.isSlopeEqualToPreviousSlope(slope)) {
@@ -139,9 +149,32 @@ public class FastCollinearPoints {
             pointAcc.addPoint(current, slope);
         }
         addNewCollinearSegmentIfLongEnough(pointAcc);
-        System.out.println();
     }
 
+
+    /**
+     * Adds a new Collinear Line Segment if the below two conditions hold:
+     * <ul>
+     *     <li>The segment contains at least 4 points</li>
+     *     <li>The segment is NOT a subsegment of a line segment that has already been found</li>
+     * </ul>
+     * */
+    private void addNewCollinearSegmentIfLongEnough(PointAccumulator pointAcc){
+        // Guard clause: do nothing for < 4 collinear points
+        if (pointAcc.isTooShort()) { return; }
+
+        // Guard clause: do nothing for subsegments
+        int destIndex = Arrays.binarySearch(naturalOrdered, pointAcc.dest);     // O(lgN)
+        if (isSubsegment(pointAcc, destIndex)){
+            System.out.printf("Found subsegment! %s -> %s\n", pointAcc.source, pointAcc.dest);
+            return;
+        }
+
+        // Add Line Segment
+        System.out.printf("Adding segment %s\n", pointAcc.segment());
+        numSegments++;
+        sourcesByDestination[destIndex].enqueue(pointAcc.source);
+    }
 
     /**
      * Determines whether a point is
@@ -149,59 +182,25 @@ public class FastCollinearPoints {
      * @return
      */
     private boolean isSubsegment(PointAccumulator pointAcc, int destIndex){
-        Point first = pointAcc.first;
-        Point dest = pointAcc.last;
+        Point dest = pointAcc.dest;
+        double slope = pointAcc.previousSlope;
 
         if (destIndex < 0) { throw new RuntimeException(
                 String.format("Cannot find point %s. Binary Search returns %s", dest, destIndex)); }
 
-        LinkedQueue<Point> existingSources = segmentsByDestination[destIndex];
+        LinkedQueue<Point> existingSources = sourcesByDestination[destIndex];
         if (existingSources.isEmpty()) { return false; }
 
         // Compare first points of line segment with all existing 1st points
-        for (Point existingFirst : existingSources) {
-            // Same slope => potentially subsegment
-            if (first.slopeTo(dest) == existingFirst.slopeTo(dest)){
-                // TODO(kentahasui): Determine if check is necessary, since we always process lower points first
-
-                /*
-                We only want to add the lowest point as the first
-                point in the segment (Otherwise we'd end up with subsegments)
-
-
-                Thus if the new first is greater than the existing point,
-                we have a subsegment.
-
-                Otherwise we the new first is indeed the lowest point with a
-                slope to the given array.
-                 */
-                return first.compareTo(existingFirst) >= 0 ;
+        for (Point existingSource : existingSources) {
+            // Same slope => subsegment
+            if (slope == existingSource.slopeTo(dest)){
+                return true;
             }
         }
 
         // No matching slopes. This is not a subsegment.
         return false;
-    }
-
-    /** Helper method to avoid code duplication */
-    private void addNewCollinearSegmentIfLongEnough(PointAccumulator pointAcc){
-
-        // TODO(kentahasui): deal with subsegments for segments with length > 4
-        // Guard clause: do nothing for < 4 collinear points
-        if (pointAcc.isTooShort()) { return; }
-
-        int destIndex = Arrays.binarySearch(naturalOrdered, pointAcc.last);
-        // Guard clause: do nothing for subsegments
-        if (isSubsegment(pointAcc, destIndex)){
-            System.out.printf("Found subsegment! %s -> %s\n", pointAcc.first, pointAcc.last);
-            return;
-        }
-
-        System.out.printf("Adding segment %s\n", pointAcc.segment());
-        segmentsByDestination[destIndex].enqueue(pointAcc.first);
-        segments.enqueue(pointAcc.segment());
-
-
     }
 
     /** Throws an exception if the input array is null */
@@ -239,16 +238,23 @@ public class FastCollinearPoints {
 
     /** Returns number of line segments containing 4 collinear points */
     public int numberOfSegments(){
-        return segments.size();
+        return numSegments;
     }
 
     /** Returns all line segments containing exactly 4 collinear points */
     public LineSegment[] segments() {
-        // TODO(kentahasui): Generate segments from destination, source pairs
-        LineSegment[] segmentArray = new LineSegment[segments.size()];
-        int index = 0;
-        for (LineSegment segment : segments){
-            segmentArray[index++] = segment;
+        // O(numSegments)
+
+        // Generate LineSegments from Destination, Source pairs
+        LineSegment[] segmentArray = new LineSegment[numSegments];
+
+        int outIndex = 0;
+        for (int destIndex = 0; destIndex < sourcesByDestination.length; destIndex++){
+            Point dest = naturalOrdered[destIndex];
+            LinkedQueue<Point> sources = sourcesByDestination[destIndex];
+            for (Point source : sources) {
+                segmentArray[outIndex++] = new LineSegment(source, dest);
+            }
         }
 
         return segmentArray;
@@ -294,9 +300,8 @@ public class FastCollinearPoints {
     private static class PointAccumulator {
         private int length;
         private double previousSlope;
-        private Point first;
-        private Point last;
         private final Point source;
+        private Point dest;
 
         private PointAccumulator(Point[] points, int index){
             System.out.printf("Creating acc with sourceIndex %s\n", index);
@@ -307,8 +312,7 @@ public class FastCollinearPoints {
         /** Removes all points other than the source */
         private void reset(){
             length = 1;
-            first = source;
-            last = source;
+            dest = source;
             previousSlope = INVALID_SLOPE;
         }
 
@@ -318,18 +322,24 @@ public class FastCollinearPoints {
 
         /**
          * Adds a new point and updates the previousSlope field.
-         * Updates the first or last pointer if it is an endpoint.
+         * Updates the first or dest pointer if it is an endpoint.
          */
         private void addPoint(Point newPoint, double slope){
             length++;
             previousSlope = slope;
 
+            // ALWAYS update dest, since the array is in naturally increasing
+            // order when the slopes are equivalent
+            dest = newPoint;
+
             // TODO(kentahasui): determine if needed
 
             // If the new point is not an endpoint for the line segment,
             // we are not interested
-            if (newPoint.compareTo(first) < 0) { first = newPoint; }
-            if (newPoint.compareTo(last) > 0) { last = newPoint; }
+//            if (newPoint.compareTo(first) < 0) { first = newPoint; }
+
+
+//            if (newPoint.compareTo(dest) > 0) { dest = newPoint; }
 
         }
 
@@ -340,7 +350,7 @@ public class FastCollinearPoints {
 
         /** Returns the LineSegment that this object represents */
         private LineSegment segment(){
-            return new LineSegment(first, last);
+            return new LineSegment(source, dest);
         }
     }
 
