@@ -65,7 +65,7 @@ public class LineSegment {
      * HACK to implement equals for unit tests.
      * In production code we'd override equals for Point, or expose
      * Point.x() and Point.y() getters to correctly compare.
-     * As it stands, ORDER MATTERS for line segment comparisons
+     * As it stands, ORDER MATTERS for line segment comparisonsB
      * */
     @Override
     public boolean equals(Object other) {

@@ -79,12 +79,12 @@ public class FastCollinearPoints {
         // Core work
         findCollinearPoints();                       // O(N^2lgN)
 
-        System.out.printf("All segments: [%s] %s\n\n", numberOfSegments(), Arrays.toString(segments()));
+//        System.out.printf("All segments: [%s] %s\n\n", numberOfSegments(), Arrays.toString(segments()));
     }
 
     private void initSegmentsByDestination() {
         // Unchecked cast OK for new Array of parameterized type
-        sourcesByDestination = new LinkedQueue[numPoints];
+        sourcesByDestination = (LinkedQueue<Point>[]) new LinkedQueue[numPoints];
         for (int i = 0; i < numPoints; i++) {
             sourcesByDestination[i] = new LinkedQueue<>();
         }
