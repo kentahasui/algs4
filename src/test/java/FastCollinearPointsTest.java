@@ -242,4 +242,20 @@ public class FastCollinearPointsTest {
                 new LineSegment(new Point(0, 2), new Point(3, 2)),
                 new LineSegment(new Point(0, 3), new Point(3, 3)));
     }
+
+        @Test
+    public void input6(){
+        Point[] points = {
+                new Point(19000, 10000),
+                new Point(18000, 10000),
+                new Point(32000, 10000),
+                new Point(21000, 10000),
+                new Point(1234 , 5678),
+                new Point(14000, 10000)};
+
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
+
+        assertThat(collinearPoints.segments()).asList().containsExactly(
+                new LineSegment(new Point(14000, 10000), new Point(32000, 10000)));
+    }
 }
