@@ -172,55 +172,6 @@ public class BruteCollinearPointsTest {
         ).inOrder();
     }
 
-//    @Test
-//    public void inputHorizontal5(){
-//        /*7453 14118
-//2682 14118
-//7821 14118
-//5067 14118
-//9972 4652
-//16307 4652
-//5766 4652
-//4750 4652
-//13291 7996
-//20547 7996
-//10411 7996
-//8934 7996
-//1888 7657
-//7599 7657
-//12772 7657
-//13832 7657
-//10375 12711
-//14226 12711
-//20385 12711
-//18177 12711
-//*/
-//
-//        Point[] points = {
-//                new Point(19000, 10000),
-//                new Point(18000, 10000),
-//                new Point(32000, 10000),
-//                new Point(21000, 10000),
-//                new Point(1234 , 5678),
-//                new Point(14000, 10000)};
-//    }
-
-//    @Test
-//    public void input6(){
-//        Point[] points = {
-//                new Point(19000, 10000),
-//                new Point(18000, 10000),
-//                new Point(32000, 10000),
-//                new Point(21000, 10000),
-//                new Point(1234 , 5678),
-//                new Point(14000, 10000)};
-//
-//        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
-//
-//        assertThat(collinearPoints.segments()).asList().containsExactly(
-//                new LineSegment(new Point(14000, 10000), new Point(32000, 10000)));
-//    }
-
     @Test
     public void inputHasCollinearPointsInDifferentOrder_shouldCreateLineSegmentInOrder(){
         Point[] points = {

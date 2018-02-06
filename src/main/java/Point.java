@@ -93,17 +93,17 @@ public class Point implements Comparable<Point> {
     }
 
     /** Determines whether the given point has the same x and y coordinates */
-    private boolean isDegenerate(Point that){
+    private boolean isDegenerate(Point that) {
         return y == that.y && x == that.x;
     }
 
     /** Determines whether the given point has the same y coordinate */
-    private boolean isHorizontal(Point that){
+    private boolean isHorizontal(Point that) {
         return y == that.y;
     }
 
     /** Determines whether the given point has the same x coordinate */
-    private boolean isVertical(Point that){
+    private boolean isVertical(Point that) {
         return x == that.x;
     }
 
@@ -127,23 +127,23 @@ public class Point implements Comparable<Point> {
      */
     public Comparator<Point> slopeOrder() {
         // Cache existing instance for performance
-//        if (slopeComparator == null) { slopeComparator = new SlopeComparator(); }
-//        return slopeComparator;
-        return new SlopeComparator();
+        if (slopeComparator == null) { slopeComparator = new SlopeComparator(); }
+        return slopeComparator;
     }
     /**
+     * Immutable comparator.
      * Compares points based on slope to this point.
      * Implemented as a non-static class in order to retain pointer to
      * enclosing class.
      */
-    private class SlopeComparator implements Comparator<Point>{
-        public int compare(Point p1, Point p2){
+    private class SlopeComparator implements Comparator<Point> {
+        public int compare(Point p1, Point p2) {
             double slope1 = slopeTo(p1);
             double slope2 = slopeTo(p2);
 
             // If the points have the same slope to the source point,
             // compare by y, then by x
-            if (slope1 == slope2) {
+            if (Double.compare(slope1, slope2) == 0) {
                 return p1.compareTo(p2);
             }
 
@@ -151,7 +151,6 @@ public class Point implements Comparable<Point> {
             // The smaller slope is lesser, and the larger slope is greater.
             return Double.compare(slope1, slope2);
         }
-
     }
 
     /**

@@ -68,8 +68,8 @@ public class LineSegment {
      * As it stands, ORDER MATTERS for line segment comparisons
      * */
     @Override
-    public boolean equals(Object other){
-        if (!(other instanceof LineSegment)) { return false; }
+    public boolean equals(Object other) {
+        if (!(other.getClass().equals(LineSegment.class))) { return false; }
         LineSegment otherSegment = (LineSegment) other;
         return p.compareTo(otherSegment.p) == 0 && q.compareTo(otherSegment.q) == 0;
     }

@@ -32,7 +32,7 @@ import java.util.Arrays;
 
 /**
  * Calculates all collinear points on a plane via a brute-force algorithm.
- *
+ * <p>
  * <pre>
  * {@code
  *
@@ -54,13 +54,13 @@ public class BruteCollinearPoints {
      *
      * @param points A one-dimensional array of Points.
      * @throws IllegalArgumentException if ANY of the following is true:
-     * <ul>
-     *     <li>The input array is null</li>
-     *     <li>Any element in the array is null</li>
-     *     <li>there are any repeated points in the array (same x and y) </li>
-     * </ul>
+     *                                  <ul>
+     *                                  <li>The input array is null</li>
+     *                                  <li>Any element in the array is null</li>
+     *                                  <li>there are any repeated points in the array (same x and y) </li>
+     *                                  </ul>
      */
-    public BruteCollinearPoints(Point[] points){
+    public BruteCollinearPoints(Point[] points) {
         // Validate input
         validateArrayIsNotNull(points);          // O(1)
         validateNoElementInArrayIsNull(points);  // O(N)
@@ -71,30 +71,38 @@ public class BruteCollinearPoints {
         findCollinearPoints(points);             // O(N^4)
     }
 
+    private boolean isEqual(double point1, double point2) {
+        return Double.compare(point1, point2) == 0;
+    }
+
     /**
      * Finds collinear points of length 4 and adds to the <em>segments</em>
      * instance variable.
+     *
      * @param points Array of points sorted via the <b>NATURAL ORDER</b>
      */
-    private void findCollinearPoints(Point[] points){
+    private void findCollinearPoints(Point[] points) {
         int length = points.length;
 
         // Memoize slopes from a given point for performance
         double[] slopes = new double[length];
 
         // Quad loop => ~1/4N^4 => O(N^4)
-        for (int p = 0; p < length - 3; p++){
+        for (int p = 0; p < length - 3; p++) {
             calculateSlopesFromSource(points, slopes, p); // O(N)
 
-            for (int q = p + 1; q < length - 2; q++){
+            for (int q = p + 1; q < length - 2; q++) {
 
-                for (int r = q + 1; r < length - 1; r++){
+                for (int r = q + 1; r < length - 1; r++) {
 
                     // Quit early if three of four points are not collinear
-                    if (slopes[q] != slopes[r] ){ continue; }
+                    if (!isEqual(slopes[q], slopes[r])) {
+                        continue;
+                    }
 
-                    for (int s = r + 1; s < length; s++){
-                        if (slopes[q] == slopes[r] && slopes[r] == slopes[s]){
+                    for (int s = r + 1; s < length; s++) {
+                        if (isEqual(slopes[q], slopes[r]) &&
+                                isEqual(slopes[r], slopes[s])) {
                             segments.enqueue(
                                     createLineSegment(points[p], points[s]));
                         }
@@ -108,19 +116,19 @@ public class BruteCollinearPoints {
      * Calculates slopes from a source point to all points to the right
      * (points that are greater than the source point, according to the
      * natural order).
-     *
+     * <p>
      * Mutates the slopes array.
      *
-     * @param points An array of points, sorted by the natural order (y, x)
-     * @param slopes An array of slopes. Formally, for a given index i such that
-     *               sourceIndex < i, the entry slopes[i] is equal to
-     *               the slope from the source point to the ith entry in the
-     *               "points" array.
+     * @param points      An array of points, sorted by the natural order (y, x)
+     * @param slopes      An array of slopes. Formally, for a given index i such that
+     *                    sourceIndex < i, the entry slopes[i] is equal to
+     *                    the slope from the source point to the ith entry in the
+     *                    "points" array.
      * @param sourceIndex The index of the source node in the "points" array.
      */
-    private void calculateSlopesFromSource(Point[] points, double[] slopes, int sourceIndex){
+    private void calculateSlopesFromSource(Point[] points, double[] slopes, int sourceIndex) {
         Point source = points[sourceIndex];
-        for (int destIndex = sourceIndex+1; destIndex < points.length; destIndex++){
+        for (int destIndex = sourceIndex + 1; destIndex < points.length; destIndex++) {
             Point dest = points[destIndex];
             slopes[destIndex] = source.slopeTo(dest);
         }
@@ -132,31 +140,37 @@ public class BruteCollinearPoints {
      * processed because the input array is sorted at the start via the
      * natural order.
      */
-    private LineSegment createLineSegment(Point start, Point end){
+    private LineSegment createLineSegment(Point start, Point end) {
         return new LineSegment(start, end);
     }
 
-    /** Throws an exception if the input array is null */
-    private void validateArrayIsNotNull(Point[] points){
+    /**
+     * Throws an exception if the input array is null
+     */
+    private void validateArrayIsNotNull(Point[] points) {
         if (points == null) {
             throw new IllegalArgumentException("Input cannot be null");
         }
     }
 
-    /** Throws an exception if any element in the input array is null */
-    private void validateNoElementInArrayIsNull(Point[] points){
+    /**
+     * Throws an exception if any element in the input array is null
+     */
+    private void validateNoElementInArrayIsNull(Point[] points) {
         for (Point p : points) {
             if (p == null) {
-                throw new IllegalArgumentException("No point in input can be null");
+                throw new IllegalArgumentException("Null point found in input");
             }
         }
     }
 
-    /** Throws an exception if there are any repeated points in the input */
-    private void validateNoRepeatedElements(Point[] points){
+    /**
+     * Throws an exception if there are any repeated points in the input
+     */
+    private void validateNoRepeatedElements(Point[] points) {
         // assert isSorted(points);
         Point prevPoint = null;
-        for (Point point : points){
+        for (Point point : points) {
             if (prevPoint != null && prevPoint.compareTo(point) == 0) {
                 throw new IllegalArgumentException(String.format(
                         "Degenerate points found: %s and %s",
@@ -167,16 +181,20 @@ public class BruteCollinearPoints {
         }
     }
 
-    /** Returns number of line segments containing 4 collinear points */
-    public int numberOfSegments(){
+    /**
+     * Returns number of line segments containing 4 collinear points
+     */
+    public int numberOfSegments() {
         return segments.size();
     }
 
-    /** Returns all line segments containing exactly 4 collinear points */
+    /**
+     * Returns all line segments containing exactly 4 collinear points
+     */
     public LineSegment[] segments() {
         LineSegment[] segmentArray = new LineSegment[segments.size()];
         int index = 0;
-        for (LineSegment segment : segments){
+        for (LineSegment segment : segments) {
             segmentArray[index++] = segment;
         }
         return segmentArray;
@@ -186,6 +204,7 @@ public class BruteCollinearPoints {
      * Provided test client for BruteCollinearPoints.
      * Reads coordinates from a file and prints collinear segments of length 4.
      * Also displays the segments using {@link StdDraw}
+     *
      * @param args Unused.
      */
     public static void main(String[] args) {
