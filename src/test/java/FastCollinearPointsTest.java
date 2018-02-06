@@ -1,25 +1,25 @@
+/******************************************************************************
+ *  Compilation:  javac FastCollinearPointsTest.java
+ *  Execution:    java FastCollinearPoints
+ *  Dependencies: FastCollinearPointsTest.java
+ *
+ *  Unit tests for FastCollinearPoints
+ ******************************************************************************/
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
 
-/******************************************************************************
- *  Compilation:  javac BruteCollinearPointsTest.java
- *  Execution:    java BruteCollinearPointsTest
- *  Dependencies: BruteCollinearPoints.java
- *
- *  Unit tests for BruteCollinearPoints
- ******************************************************************************/
-public class BruteCollinearPointsTest {
+public class FastCollinearPointsTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void inputIsNull_throwsIllegalArgumentException(){
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(null);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void inputHasNullElements_throwsIllegalArgumentException(){
         Point[] points = {new Point(1, 1), null, new Point(1, 2)};
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -32,13 +32,13 @@ public class BruteCollinearPointsTest {
                 new Point(1, 2),
                 new Point(1, 3)};
 
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
     }
 
     @Test
     public void inputIsEmpty_hasNoCollinearPoints(){
         Point[] points = {};
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(0);
     }
 
@@ -48,7 +48,7 @@ public class BruteCollinearPointsTest {
                 new Point(1, 1),
                 new Point(2, 2),
                 new Point(3, 3)};
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(0);
     }
 
@@ -59,7 +59,7 @@ public class BruteCollinearPointsTest {
                 new Point(2, 2),
                 new Point(3, 3),
                 new Point(4, 0)};
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(0);
     }
 
@@ -70,7 +70,7 @@ public class BruteCollinearPointsTest {
                 new Point(2, 2),
                 new Point(3, 3),
                 new Point(4, 4)};
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(1);
         assertThat(collinearPoints.segments()).asList().containsExactly(
                 new LineSegment(new Point(1, 1), new Point(4, 4))
@@ -88,7 +88,7 @@ public class BruteCollinearPointsTest {
                 new Point(11, 22),
                 new Point(12, 24),
                 new Point(13, 26)};
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(2);
         assertThat(collinearPoints.segments()).asList().containsExactly(
                 new LineSegment(new Point(1, 1), new Point(4,4)),
@@ -108,7 +108,7 @@ public class BruteCollinearPointsTest {
                 new Point(10, 20),
                 new Point(1, 1),
         };
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(2);
         assertThat(collinearPoints.segments()).asList().containsExactly(
                 new LineSegment(new Point(1, 1), new Point(4,4)),
@@ -143,7 +143,7 @@ public class BruteCollinearPointsTest {
                 new Point(3, 2),
                 new Point(3, 4)
         };
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.segments()).asList().containsExactly(
                 // Positive slope
                 new LineSegment(new Point(1, 1), new Point(4, 4)),
@@ -166,60 +166,11 @@ public class BruteCollinearPointsTest {
                 new Point(2, 2),
                 new Point(3, 3),
                 new Point(4, 4)};
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.segments()).asList().containsExactly(
                 new LineSegment(new Point(1, 1), new Point(4,4))
         ).inOrder();
     }
-
-//    @Test
-//    public void inputHorizontal5(){
-//        /*7453 14118
-//2682 14118
-//7821 14118
-//5067 14118
-//9972 4652
-//16307 4652
-//5766 4652
-//4750 4652
-//13291 7996
-//20547 7996
-//10411 7996
-//8934 7996
-//1888 7657
-//7599 7657
-//12772 7657
-//13832 7657
-//10375 12711
-//14226 12711
-//20385 12711
-//18177 12711
-//*/
-//
-//        Point[] points = {
-//                new Point(19000, 10000),
-//                new Point(18000, 10000),
-//                new Point(32000, 10000),
-//                new Point(21000, 10000),
-//                new Point(1234 , 5678),
-//                new Point(14000, 10000)};
-//    }
-
-//    @Test
-//    public void input6(){
-//        Point[] points = {
-//                new Point(19000, 10000),
-//                new Point(18000, 10000),
-//                new Point(32000, 10000),
-//                new Point(21000, 10000),
-//                new Point(1234 , 5678),
-//                new Point(14000, 10000)};
-//
-//        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
-//
-//        assertThat(collinearPoints.segments()).asList().containsExactly(
-//                new LineSegment(new Point(14000, 10000), new Point(32000, 10000)));
-//    }
 
     @Test
     public void inputHasCollinearPointsInDifferentOrder_shouldCreateLineSegmentInOrder(){
@@ -231,11 +182,28 @@ public class BruteCollinearPointsTest {
                 new Point(4, 4),
                 new Point(1, 1),
                 new Point(2, 2)};
-        BruteCollinearPoints collinearPoints = new BruteCollinearPoints(points);
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(1);
         assertThat(collinearPoints.segments()).asList().containsExactly(
                 new LineSegment(new Point(1, 1), new Point(4,4))
         ).inOrder();
+    }
+
+    @Test
+    public void inputHasMoreThanFourCollinearPoints_shouldReturnAllPoints(){
+        Point[] points = {
+                new Point(0, 0),
+                new Point(1, 1),
+                new Point(2, 2),
+                new Point(3, 3),
+                new Point(4, 4),
+                new Point(5, 5),
+                new Point(6, 6),
+                new Point(7, 7),
+        };
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
+        assertThat(collinearPoints.segments()).asList().containsExactly(
+                new LineSegment(new Point(0, 0), new Point(7, 7))).inOrder();
     }
 
     @Test

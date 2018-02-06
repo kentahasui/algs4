@@ -1,6 +1,6 @@
 /******************************************************************************
  *  Compilation:  javac BruteCollinearPoints.java
- *  Execution:    java BruteCollinearPoints
+ *  Execution:    java BruteCollinearPoints input.txt
  *  Dependencies: Point.java LineSegment.java
  *
  *  A class to calculate Collinear points on a plane via an exhaustive
@@ -9,10 +9,24 @@
  *  Points on a plane are represented by a one-dimensional array of
  *  {@link Point} objects.
  *
+ *  To run the program, pass in a path to file input.txt on the command line.
+ *  input.txt should have a number n followed by n lines of coordinate pairs.
+ *  Example:
+ *
+ *  5
+ *  1 1
+ *  2 2
+ *  3 3
+ *  4 400
+ *  5 900
+ *
  *
  ******************************************************************************/
 
+import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.LinkedQueue;
+import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.StdOut;
 
 import java.util.Arrays;
 
@@ -31,7 +45,7 @@ import java.util.Arrays;
  * </pre>
  */
 public class BruteCollinearPoints {
-    private final LinkedQueue<LineSegment> segments;
+    private final LinkedQueue<LineSegment> segments = new LinkedQueue<>();
 
     /**
      * Constructor. Finds all collinear points consisting of <em>exactly</em> 4
@@ -47,41 +61,43 @@ public class BruteCollinearPoints {
      * </ul>
      */
     public BruteCollinearPoints(Point[] points){
-        // Initialize collection for results
-        segments = new LinkedQueue<>();
-
         // Validate input
-        validateArrayIsNotNull(points);
-        validateNoElementInArrayIsNull(points);
-        Arrays.sort(points);
-        validateNoRepeatedElements(points);
+        validateArrayIsNotNull(points);          // O(1)
+        validateNoElementInArrayIsNull(points);  // O(N)
+        Arrays.sort(points);                     // O(NlgN)
+        validateNoRepeatedElements(points);      // O(N)
 
         // Do core work
-        findCollinearPoints(points);
+        findCollinearPoints(points);             // O(N^4)
     }
 
+    /**
+     * Finds collinear points of length 4 and adds to the <em>segments</em>
+     * instance variable.
+     * @param points Array of points sorted via the <b>NATURAL ORDER</b>
+     */
     private void findCollinearPoints(Point[] points){
         int length = points.length;
+
+        // Memoize slopes from a given point for performance
+        double[] slopes = new double[length];
+
+        // Quad loop => ~1/4N^4 => O(N^4)
         for (int p = 0; p < length - 3; p++){
-            Point pointP = points[p];
+            calculateSlopesFromSource(points, slopes, p); // O(N)
+
             for (int q = p + 1; q < length - 2; q++){
-                double slopeQ = pointP.slopeTo(points[q]);
 
                 for (int r = q + 1; r < length - 1; r++){
-                    double slopeR = pointP.slopeTo(points[r]);
 
                     // Quit early if three of four points are not collinear
-                    if (slopeQ != slopeR ){ continue; }
+                    if (slopes[q] != slopes[r] ){ continue; }
 
                     for (int s = r + 1; s < length; s++){
-                        double slopeS = pointP.slopeTo(points[s]);
-
-                        if (slopeQ == slopeR && slopeR == slopeS){
-                            segments.enqueue(createLineSegment(
-                                    pointP, points[q], points[r], points[s]));
+                        if (slopes[q] == slopes[r] && slopes[r] == slopes[s]){
+                            segments.enqueue(
+                                    createLineSegment(points[p], points[s]));
                         }
-
-//                        System.out.printf("%s %s %s %s\n", p, q, r, s);
                     }
                 }
             }
@@ -89,15 +105,35 @@ public class BruteCollinearPoints {
     }
 
     /**
+     * Calculates slopes from a source point to all points to the right
+     * (points that are greater than the source point, according to the
+     * natural order).
+     *
+     * Mutates the slopes array.
+     *
+     * @param points An array of points, sorted by the natural order (y, x)
+     * @param slopes An array of slopes. Formally, for a given index i such that
+     *               sourceIndex < i, the entry slopes[i] is equal to
+     *               the slope from the source point to the ith entry in the
+     *               "points" array.
+     * @param sourceIndex The index of the source node in the "points" array.
+     */
+    private void calculateSlopesFromSource(Point[] points, double[] slopes, int sourceIndex){
+        Point source = points[sourceIndex];
+        for (int destIndex = sourceIndex+1; destIndex < points.length; destIndex++){
+            Point dest = points[destIndex];
+            slopes[destIndex] = source.slopeTo(dest);
+        }
+    }
+
+    /**
      * Create a line segment out of 4 collinear points.
      * The endpoints of the line segment are the first and last points
-     * when the segment is sorted via the natural order.
+     * processed because the input array is sorted at the start via the
+     * natural order.
      */
-    private LineSegment createLineSegment(Point p, Point q, Point r, Point s){
-        return new LineSegment(p, s);
-//        Point[] sortedPoints = {p, q, r, s};
-//        Arrays.sort(sortedPoints);
-//        return new LineSegment(sortedPoints[0], sortedPoints[3]);
+    private LineSegment createLineSegment(Point start, Point end){
+        return new LineSegment(start, end);
     }
 
     /** Throws an exception if the input array is null */
@@ -144,5 +180,40 @@ public class BruteCollinearPoints {
             segmentArray[index++] = segment;
         }
         return segmentArray;
+    }
+
+    /**
+     * Provided test client for BruteCollinearPoints.
+     * Reads coordinates from a file and prints collinear segments of length 4.
+     * Also displays the segments using {@link StdDraw}
+     * @param args Unused.
+     */
+    public static void main(String[] args) {
+        // read the n points from a file
+        In in = new In(args[0]);
+        int n = in.readInt();
+        Point[] points = new Point[n];
+        for (int i = 0; i < n; i++) {
+            int x = in.readInt();
+            int y = in.readInt();
+            points[i] = new Point(x, y);
+        }
+
+        // draw the points
+        StdDraw.enableDoubleBuffering();
+        StdDraw.setXscale(0, 32768);
+        StdDraw.setYscale(0, 32768);
+        for (Point p : points) {
+            p.draw();
+        }
+        StdDraw.show();
+
+        // print and draw the line segments
+        BruteCollinearPoints collinear = new BruteCollinearPoints(points);
+        for (LineSegment segment : collinear.segments()) {
+            StdOut.println(segment);
+            segment.draw();
+        }
+        StdDraw.show();
     }
 }

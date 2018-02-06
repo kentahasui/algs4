@@ -15,6 +15,7 @@ public class Point implements Comparable<Point> {
 
     private final int x;     // x-coordinate of this point
     private final int y;     // y-coordinate of this point
+    private Comparator<Point> slopeComparator;
 
     /**
      * Initializes a new point.
@@ -60,7 +61,7 @@ public class Point implements Comparable<Point> {
      */
     public double slopeTo(Point that) {
         if (isDegenerate(that)) { return Double.NEGATIVE_INFINITY; }
-        if (isHorizontal(that)) { return 0.0; }
+        if (isHorizontal(that)) { return +0.0; }
         if (isVertical(that)) { return Double.POSITIVE_INFINITY; }
 
         double rise = (double) that.y - y;
@@ -107,15 +108,29 @@ public class Point implements Comparable<Point> {
     }
 
     /**
+     * Returns a string representation of this point.
+     * This method is provide for debugging;
+     * your program should not rely on the format of the string representation.
+     *
+     * @return a string representation of this point
+     */
+    public String toString() {
+        /* DO NOT MODIFY */
+        return "(" + x + ", " + y + ")";
+    }
+
+    /**
      * Compares two points by the slope they make with this point.
      * The slope is defined as in the slopeTo() method.
      *
      * @return the Comparator that defines this ordering on points
      */
     public Comparator<Point> slopeOrder() {
+        // Cache existing instance for performance
+//        if (slopeComparator == null) { slopeComparator = new SlopeComparator(); }
+//        return slopeComparator;
         return new SlopeComparator();
     }
-
     /**
      * Compares points based on slope to this point.
      * Implemented as a non-static class in order to retain pointer to
@@ -128,7 +143,7 @@ public class Point implements Comparable<Point> {
 
             // If the points have the same slope to the source point,
             // compare by y, then by x
-            if (Double.compare(slope1, slope2) == 0) {
+            if (slope1 == slope2) {
                 return p1.compareTo(p2);
             }
 
@@ -136,18 +151,7 @@ public class Point implements Comparable<Point> {
             // The smaller slope is lesser, and the larger slope is greater.
             return Double.compare(slope1, slope2);
         }
-    }
 
-    /**
-     * Returns a string representation of this point.
-     * This method is provide for debugging;
-     * your program should not rely on the format of the string representation.
-     *
-     * @return a string representation of this point
-     */
-    public String toString() {
-        /* DO NOT MODIFY */
-        return "(" + x + ", " + y + ")";
     }
 
     /**
