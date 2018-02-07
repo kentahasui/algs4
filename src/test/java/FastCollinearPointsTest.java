@@ -5,6 +5,7 @@
  *
  *  Unit tests for FastCollinearPoints
  ******************************************************************************/
+
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -12,18 +13,18 @@ import static com.google.common.truth.Truth.assertThat;
 public class FastCollinearPointsTest {
 
     @Test(expected = IllegalArgumentException.class)
-    public void inputIsNull_throwsIllegalArgumentException(){
+    public void inputIsNull_throwsIllegalArgumentException() {
         FastCollinearPoints collinearPoints = new FastCollinearPoints(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void inputHasNullElements_throwsIllegalArgumentException(){
+    public void inputHasNullElements_throwsIllegalArgumentException() {
         Point[] points = {new Point(1, 1), null, new Point(1, 2)};
         FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void inputHasDegeneratePoints_throwsIllegalArgumentException(){
+    public void inputHasDegeneratePoints_throwsIllegalArgumentException() {
         Point[] points = {
                 new Point(1, 1),
                 new Point(1, 2),
@@ -36,14 +37,14 @@ public class FastCollinearPointsTest {
     }
 
     @Test
-    public void inputIsEmpty_hasNoCollinearPoints(){
+    public void inputIsEmpty_hasNoCollinearPoints() {
         Point[] points = {};
         FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(0);
     }
 
     @Test
-    public void inputHasLessThanFourElements_hasNoCollinearPoints(){
+    public void inputHasLessThanFourElements_hasNoCollinearPoints() {
         Point[] points = {
                 new Point(1, 1),
                 new Point(2, 2),
@@ -53,7 +54,7 @@ public class FastCollinearPointsTest {
     }
 
     @Test
-    public void inputHasNoCollinearPoints_hasNoCollinearPoints(){
+    public void inputHasNoCollinearPoints_hasNoCollinearPoints() {
         Point[] points = {
                 new Point(1, 1),
                 new Point(2, 2),
@@ -64,7 +65,7 @@ public class FastCollinearPointsTest {
     }
 
     @Test
-    public void inputHasFourPointsAndIsCollinear_hasOneCollinearSegment(){
+    public void inputHasFourPointsAndIsCollinear_hasOneCollinearSegment() {
         Point[] points = {
                 new Point(1, 1),
                 new Point(2, 2),
@@ -78,7 +79,7 @@ public class FastCollinearPointsTest {
     }
 
     @Test
-    public void inputHasTwoCollinearSegments_returnsTwoCollinearSegments(){
+    public void inputHasTwoCollinearSegments_returnsTwoCollinearSegments() {
         Point[] points = {
                 new Point(1, 1),
                 new Point(2, 2),
@@ -91,13 +92,13 @@ public class FastCollinearPointsTest {
         FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(2);
         assertThat(collinearPoints.segments()).asList().containsExactly(
-                new LineSegment(new Point(1, 1), new Point(4,4)),
+                new LineSegment(new Point(1, 1), new Point(4, 4)),
                 new LineSegment(new Point(10, 20), new Point(13, 26))
         ).inOrder();
     }
 
     @Test
-    public void inputHasTwoCollinearSegmentsScattered_returnsTwoCollinearSegments(){
+    public void inputHasTwoCollinearSegmentsScattered_returnsTwoCollinearSegments() {
         Point[] points = {
                 new Point(13, 26),
                 new Point(4, 4),
@@ -111,13 +112,13 @@ public class FastCollinearPointsTest {
         FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(2);
         assertThat(collinearPoints.segments()).asList().containsExactly(
-                new LineSegment(new Point(1, 1), new Point(4,4)),
+                new LineSegment(new Point(1, 1), new Point(4, 4)),
                 new LineSegment(new Point(10, 20), new Point(13, 26))
         ).inOrder();
     }
 
     @Test
-    public void inputHasVerticalSlope_horizontalSlope_positiveSlope_negativeSlope_intersecting(){
+    public void inputHasVerticalSlope_horizontalSlope_positiveSlope_negativeSlope_intersecting() {
         Point[] points = {
 
                 // Middle of intersection
@@ -157,7 +158,7 @@ public class FastCollinearPointsTest {
     }
 
     @Test
-    public void inputHasCollinearPointsAtEndOfArray(){
+    public void inputHasCollinearPointsAtEndOfArray() {
         Point[] points = {
                 new Point(1, 1),
                 new Point(2, 200),
@@ -168,12 +169,12 @@ public class FastCollinearPointsTest {
                 new Point(4, 4)};
         FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.segments()).asList().containsExactly(
-                new LineSegment(new Point(1, 1), new Point(4,4))
+                new LineSegment(new Point(1, 1), new Point(4, 4))
         ).inOrder();
     }
 
     @Test
-    public void inputHasCollinearPointsInDifferentOrder_shouldCreateLineSegmentInOrder(){
+    public void inputHasCollinearPointsInDifferentOrder_shouldCreateLineSegmentInOrder() {
         Point[] points = {
                 new Point(3, 3),
                 new Point(2, 200),
@@ -185,12 +186,12 @@ public class FastCollinearPointsTest {
         FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
         assertThat(collinearPoints.numberOfSegments()).isEqualTo(1);
         assertThat(collinearPoints.segments()).asList().containsExactly(
-                new LineSegment(new Point(1, 1), new Point(4,4))
+                new LineSegment(new Point(1, 1), new Point(4, 4))
         ).inOrder();
     }
 
     @Test
-    public void inputHasMoreThanFourCollinearPoints_shouldReturnAllPoints(){
+    public void inputHasMoreThanFourCollinearPoints_shouldReturnAllPoints() {
         Point[] points = {
                 new Point(0, 0),
                 new Point(1, 1),
@@ -207,7 +208,7 @@ public class FastCollinearPointsTest {
     }
 
     @Test
-    public void inputHasMaximumNumberOfCollinearSegmentsOfLengthFour_shouldCreateTenSegments(){
+    public void inputHasMaximumNumberOfCollinearSegmentsOfLengthFour_shouldCreateTenSegments() {
         // 4x4 grid of points
         Point[] points = {
                 new Point(0, 0),
@@ -243,19 +244,95 @@ public class FastCollinearPointsTest {
                 new LineSegment(new Point(0, 3), new Point(3, 3)));
     }
 
-        @Test
-    public void input6(){
+    @Test
+    public void input6() {
         Point[] points = {
                 new Point(19000, 10000),
                 new Point(18000, 10000),
                 new Point(32000, 10000),
                 new Point(21000, 10000),
-                new Point(1234 , 5678),
+                new Point(1234, 5678),
                 new Point(14000, 10000)};
 
         FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
 
         assertThat(collinearPoints.segments()).asList().containsExactly(
                 new LineSegment(new Point(14000, 10000), new Point(32000, 10000)));
+    }
+
+    @Test
+    public void inputHasMorePointsThanSegments() {
+        Point[] points = {
+                new Point(0, 0),
+                new Point(1, 1),
+                new Point(2, 2),
+                new Point(3, 3)
+        };
+        FastCollinearPoints collinearPoints = new FastCollinearPoints(points);
+
+        assertThat(collinearPoints.segments()).asList().containsExactly(
+                new LineSegment(new Point(0, 0), new Point(3, 3)));
+    }
+
+    @Test
+    public void testMutability() {
+        Point[] points = new Point[]{
+                new Point(10000, 0),
+                new Point(8000, 2000),
+                new Point(2000, 8000),
+                new Point(0, 10000),
+
+                new Point(20000, 0),
+                new Point(18000, 2000),
+                new Point(2000, 18000),
+
+                new Point(10000, 20000),
+                new Point(30000, 0),
+                new Point(0, 30000),
+                new Point(20000, 10000),
+
+                new Point(13000, 0),
+                new Point(11000, 3000),
+                new Point(5000, 12000),
+                new Point(9000, 6000)
+        };
+
+        FastCollinearPoints collinear = new FastCollinearPoints(points);
+        // First pass
+        assertThat(collinear.numberOfSegments()).isEqualTo(4);
+        LineSegment[] originalSegments = collinear.segments();
+        assertThat(originalSegments).asList().containsExactly(
+                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
+                new LineSegment(new Point(10000, 0), new Point(0, 10000)),
+                new LineSegment(new Point(13000, 0), new Point(5000, 12000)),
+                new LineSegment(new Point(30000, 0), new Point(0, 30000))
+        ).inOrder();
+
+        // Mutate points[]
+        points[0] = null;
+        points[1] = null;
+
+        assertThat(collinear.numberOfSegments()).isEqualTo(4);
+
+        assertThat(originalSegments).asList().containsExactly(
+                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
+                new LineSegment(new Point(10000, 0), new Point(0, 10000)),
+                new LineSegment(new Point(13000, 0), new Point(5000, 12000)),
+                new LineSegment(new Point(30000, 0), new Point(0, 30000))
+        ).inOrder();
+
+        LineSegment[] newSegments = collinear.segments();
+        assertThat(newSegments).asList().containsExactly(
+                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
+                new LineSegment(new Point(10000, 0), new Point(0, 10000)),
+                new LineSegment(new Point(13000, 0), new Point(5000, 12000)),
+                new LineSegment(new Point(30000, 0), new Point(0, 30000))
+        ).inOrder();
+
+        // Equal contents
+        assertThat(newSegments).isEqualTo(originalSegments);
+
+        // Different objects
+        assertThat(newSegments).isNotSameAs(originalSegments);
     }
 }

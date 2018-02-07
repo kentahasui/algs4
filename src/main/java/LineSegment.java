@@ -69,7 +69,8 @@ public class LineSegment {
      * */
     @Override
     public boolean equals(Object other) {
-        if (!(other.getClass().equals(LineSegment.class))) { return false; }
+        if (other == null) { return false; }
+        if (other.getClass() != this.getClass()) { return false; }
         LineSegment otherSegment = (LineSegment) other;
         return p.compareTo(otherSegment.p) == 0 && q.compareTo(otherSegment.q) == 0;
     }
