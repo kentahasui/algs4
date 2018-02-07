@@ -61,9 +61,6 @@ public class FastCollinearPoints {
      */
     private final List<LinkedQueue<Double>> slopesByDestination;
 
-    /* HACK to pass automated tests: Output array for segments() method */
-    private final LineSegment[] output;
-
     /**
      * Constructor.
      *
@@ -105,8 +102,6 @@ public class FastCollinearPoints {
 
         // Core work
         findCollinearPoints();                           // O(N^2lgN)
-
-        output = new LineSegment[numberOfSegments()];
     }
 
     /**
@@ -315,13 +310,13 @@ public class FastCollinearPoints {
      * Returns all line segments containing exactly 4 collinear points
      */
     public LineSegment[] segments() {
-        // Re-load output with line segments, in case the client mutated
-        // the previous output
+        // Create and return defensive copy of segments
+        LineSegment[] out = new LineSegment[numberOfSegments()];
         int index = 0;
         for (LineSegment segment : segments) {
-            output[index++] = segment;
+            out[index++] = segment;
         }
-        return output;
+        return out;
     }
 
     /**

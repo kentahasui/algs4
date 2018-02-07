@@ -332,8 +332,7 @@ public class FastCollinearPointsTest {
         // Equal contents
         assertThat(newSegments).isEqualTo(originalSegments);
 
-        // Same objects
-        assertThat(newSegments).isSameAs(originalSegments);
-//        assertThat(newSegments).isNotSameAs(originalSegments);
+        // Check that we created a defensive copy
+        assertThat(newSegments).isNotSameAs(originalSegments);
     }
 }
