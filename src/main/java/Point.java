@@ -141,11 +141,11 @@ public class Point implements Comparable<Point> {
             double slope1 = slopeTo(p1);
             double slope2 = slopeTo(p2);
 
-            // If the points have the same slope to the source point,
-            // compare by y, then by x
-            if (Double.compare(slope1, slope2) == 0) {
-                return p1.compareTo(p2);
-            }
+//            // If the points have the same slope to the source point,
+//            // compare by y, then by x
+//            if (Double.compare(slope1, slope2) == 0) {
+//                return p1.compareTo(p2);
+//            }
 
             // If the points have different slopes, compare by the slopes.
             // The smaller slope is lesser, and the larger slope is greater.

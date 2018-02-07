@@ -302,8 +302,8 @@ public class FastCollinearPointsTest {
         assertThat(collinear.numberOfSegments()).isEqualTo(4);
         LineSegment[] originalSegments = collinear.segments();
         assertThat(originalSegments).asList().containsExactly(
-                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
                 new LineSegment(new Point(10000, 0), new Point(0, 10000)),
+                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
                 new LineSegment(new Point(13000, 0), new Point(5000, 12000)),
                 new LineSegment(new Point(30000, 0), new Point(0, 30000))
         ).inOrder();
@@ -315,16 +315,16 @@ public class FastCollinearPointsTest {
         assertThat(collinear.numberOfSegments()).isEqualTo(4);
 
         assertThat(originalSegments).asList().containsExactly(
-                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
                 new LineSegment(new Point(10000, 0), new Point(0, 10000)),
+                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
                 new LineSegment(new Point(13000, 0), new Point(5000, 12000)),
                 new LineSegment(new Point(30000, 0), new Point(0, 30000))
         ).inOrder();
 
         LineSegment[] newSegments = collinear.segments();
         assertThat(newSegments).asList().containsExactly(
-                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
                 new LineSegment(new Point(10000, 0), new Point(0, 10000)),
+                new LineSegment(new Point(10000, 0), new Point(30000, 0)),
                 new LineSegment(new Point(13000, 0), new Point(5000, 12000)),
                 new LineSegment(new Point(30000, 0), new Point(0, 30000))
         ).inOrder();
@@ -332,7 +332,8 @@ public class FastCollinearPointsTest {
         // Equal contents
         assertThat(newSegments).isEqualTo(originalSegments);
 
-        // Different objects
-        assertThat(newSegments).isNotSameAs(originalSegments);
+        // Same objects
+        assertThat(newSegments).isSameAs(originalSegments);
+//        assertThat(newSegments).isNotSameAs(originalSegments);
     }
 }

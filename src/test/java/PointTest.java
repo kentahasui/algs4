@@ -172,26 +172,26 @@ public class PointTest {
     }
 
     @Test
-    public void slopeOrder_allPointsOnHorizontalLine_pointWithSmallerXCoordinateIsCloser(){
+    public void slopeOrder_allPointsOnHorizontalLine_pointsAreEqual(){
         Point source = new Point(1, 1);
         Point p1 = new Point(2, 1);
         Point p2 = new Point(3, 1);
-        assertThat(source.slopeOrder().compare(p1, p2)).isEqualTo(-1);
+        assertThat(source.slopeOrder().compare(p1, p2)).isEqualTo(0);
     }
 
     @Test
-    public void slopeOrder_allPointsOnVerticalLine_pointWithSmallerYCoordinateIsCloser(){
+    public void slopeOrder_allPointsOnVerticalLine_pointsAreEqual(){
         Point source = new Point(1, 1);
         Point p1 = new Point(1, 500);
         Point p2 = new Point(1, 700);
-        assertThat(source.slopeOrder().compare(p1, p2)).isEqualTo(-1);
+        assertThat(source.slopeOrder().compare(p1, p2)).isEqualTo(0);
     }
 
     ///////////////////////////////////
     // Array-level comparison
     ///////////////////////////////////
     @Test
-    public void sortArrayBySlopeOrder_allPointsInArrayAreCollinear_sortByYThenByX(){
+    public void sortArrayBySlopeOrder_allPointsInArrayAreCollinear_undefinedBehavior(){
         Point source = new Point(0, 0);
         Point p1 = new Point(10, 10);
         Point p2 = new Point(9, 9);
@@ -200,7 +200,7 @@ public class PointTest {
         Point[] points = {p1, p2, p3, p4};
         Arrays.sort(points, source.slopeOrder());
 
-        assertThat(points).asList().containsExactly(p4, p3, p2, p1).inOrder();
+        assertThat(points).asList().containsExactly(p1, p2, p3, p4).inOrder();
     }
 
     @Test
@@ -227,7 +227,7 @@ public class PointTest {
         Arrays.sort(points, source1.slopeOrder());
         assertThat(points).asList().containsExactly(p4, p3, p2, p1).inOrder();
 
-        Point source2 = new Point(1, 1);
+        Point source2 = new Point(5, 2);
         Arrays.sort(points, source2.slopeOrder());
         assertThat(points).asList().containsExactly(p1, p2, p3, p4).inOrder();
     }
