@@ -42,7 +42,8 @@ public class BoardTest {
     public void threeByThree_dimension_shouldBeThree(){
         int[][] input = {
                 {0, 1, 2},
-                {3, 4, 5}
+                {3, 4, 5},
+                {6, 7, 8}
         };
         Board board = new Board(input);
         assertThat(board.dimension()).isEqualTo(3);
@@ -52,7 +53,9 @@ public class BoardTest {
     public void fourByFour_dimension_shouldBeFour(){
         int[][] input = {
                 {0, 1, 2, 3},
-                {4, 5, 6, 7}
+                {4, 5, 6, 7},
+                {8, 9, 10, 11},
+                {12, 13, 14, 15}
         };
         Board board = new Board(input);
         assertThat(board.dimension()).isEqualTo(4);
@@ -75,7 +78,8 @@ public class BoardTest {
     public void threeByThree_solved_shouldBeGoal(){
         int[][] input = {
                 {1, 2, 3},
-                {4, 5, 0}
+                {4, 5, 6},
+                {7, 8, 0}
         };
         Board board = new Board(input);
         assertThat(board.isGoal()).isTrue();
@@ -85,7 +89,9 @@ public class BoardTest {
     public void fourByFour_solved_shouldBeGoal(){
         int[][] input = {
                 {1, 2, 3, 4},
-                {5, 6, 7, 0}
+                {5, 6, 7, 8},
+                {9, 10, 11, 12},
+                {13, 14, 15, 0}
         };
         Board board = new Board(input);
         assertThat(board.isGoal()).isTrue();
@@ -108,7 +114,8 @@ public class BoardTest {
     public void threeByThree_solved_hammingShouldBeZero(){
         int[][] input = {
                 {1, 2, 3},
-                {4, 5, 0}
+                {4, 5, 6},
+                {7, 8, 0}
         };
         Board board = new Board(input);
         assertThat(board.hamming()).isEqualTo(0);
@@ -118,7 +125,9 @@ public class BoardTest {
     public void fourByFour_solved_hammingShouldBeZero(){
         int[][] input = {
                 {1, 2, 3, 4},
-                {5, 6, 7, 0}
+                {5, 6, 7, 8},
+                {9, 10, 11, 12},
+                {13, 14, 15, 0}
         };
         Board board = new Board(input);
         assertThat(board.hamming()).isEqualTo(0);
@@ -158,21 +167,24 @@ public class BoardTest {
     public void threeByThree_shouldCalculateHamming(){
         int[][] input = {
                 {1, 5, 0},
-                {3, 2, 4}
+                {3, 2, 4},
+                {7, 8, 6}
         };
         // 1 + 3 + 2 + 1
         Board board = new Board(input);
-        assertThat(board.hamming()).isEqualTo(4);
+        assertThat(board.hamming()).isEqualTo(5);
     }
 
     @Test
     public void fourByFour_shouldCalculateHamming(){
         int[][] input = {
                 {0, 1, 2, 3},
-                {4, 5, 6, 7}
+                {4, 5, 6, 7},
+                {8, 9, 10, 11},
+                {12, 13, 14, 15}
         };
         Board board = new Board(input);
-        assertThat(board.hamming()).isEqualTo(7);
+        assertThat(board.hamming()).isEqualTo(15);
     }
 
 
@@ -193,7 +205,8 @@ public class BoardTest {
     public void threeByThree_solved_manhattanShouldBeZero(){
         int[][] input = {
                 {1, 2, 3},
-                {4, 5, 0}
+                {4, 5, 6},
+                {7, 8, 0}
         };
         Board board = new Board(input);
         assertThat(board.manhattan()).isEqualTo(0);
@@ -203,7 +216,9 @@ public class BoardTest {
     public void fourByFour_solved_manhattanShouldBeZero(){
         int[][] input = {
                 {1, 2, 3, 4},
-                {5, 6, 7, 0}
+                {5, 6, 7, 8},
+                {9, 10, 11, 12},
+                {13, 14, 15, 0}
         };
         Board board = new Board(input);
         assertThat(board.manhattan()).isEqualTo(0);
@@ -252,22 +267,31 @@ public class BoardTest {
     @Test
     public void threeByThree_shouldCalculateManhattan(){
         int[][] input = {
-                {1, 5, 0},
-                {3, 2, 4}
+                {1, 2, 3},
+                {4, 6, 5},
+                {0, 8, 7}
         };
-        // 1 + 3 + 2 + 1
+        // 1 + 1 + 2
         Board board = new Board(input);
-        assertThat(board.manhattan()).isEqualTo(7);
+        assertThat(board.manhattan()).isEqualTo(4);
     }
 
     @Test
     public void fourByFour_shouldCalculateManhattan(){
         int[][] input = {
                 {0, 1, 2, 3},
-                {4, 5, 6, 7}
+                {4, 5, 6, 7},
+                {8, 9, 10, 11},
+                {12, 13, 14, 15}
         };
+
+        // 1:1 + 2:1 + 3:1 + 4:4
+        // 5:1 + 6:1 + 7:1 + 8:4
+        // 9:1 + 10:1 + 11:1 + 12:4
+        // 13:1 + 14:1 + 15:1
+        // 12(1) + 3(4) = 12 + 12 = 24
         Board board = new Board(input);
-        assertThat(board.manhattan()).isEqualTo(7);
+        assertThat(board.manhattan()).isEqualTo(24);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -308,15 +332,15 @@ public class BoardTest {
     @Test
     public void twoByTwo_blankAtThirdPosition_twin(){
         int[][] input = {
-                {0, 1},
-                {2, 3}
+                {1, 2},
+                {0, 3}
         };
         Board board = new Board(input);
 
         // Swap index 0 and index 1
         int[][] expected = {
-                {3, 2},
-                {0, 1}
+                {2, 1},
+                {0, 3}
         };
         assertThat(board.twin()).isEqualTo(new Board(expected));
     }
@@ -327,46 +351,46 @@ public class BoardTest {
     @Test
     public void differentDimensions_equals_returnsFalse(){
         int[][] input1 = {{0, 1}, {2, 3}};
-        int[][] input2 = {{0, 1, 2}, {3, 4, 5}};
+        int[][] input2 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
 
         assertThat(new Board(input1)).isNotEqualTo(new Board(input2));
     }
 
     @Test
     public void differentBoards_equals_returnsFalse(){
-        int[][] input1 = {{0, 1, 2}, {3, 4, 5}};
-        int[][] input2 = {{1, 2, 3}, {4, 5, 0}};
+        int[][] input1 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        int[][] input2 = {{1, 2, 3}, {4, 5, 0}, {6, 7, 8}};
 
         assertThat(new Board(input1)).isNotEqualTo(new Board(input2));
     }
 
     @Test
     public void equalBoards_equals_returnsTrue(){
-        int[][] input1 = {{0, 1, 2}, {3, 4, 5}};
-        int[][] input2 = {{0, 1, 2}, {3, 4, 5}};
+        int[][] input1 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        int[][] input2 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
 
         assertThat(new Board(input1)).isEqualTo(new Board(input2));
     }
 
     @Test
     public void differentClasses_equals_returnsFalse(){
-        int[][] input1 = {{0, 1, 2}, {3, 4, 5}};
+        int[][] input1 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         char[] input2 = new char[10];
         assertThat(new Board(input1)).isNotEqualTo(input2);
     }
 
     @Test
     public void equals_reflexive(){
-        int[][] input = {{0, 1, 2}, {3, 4, 5}};
+        int[][] input = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         Board board = new Board(input);
         assertThat(board).isEqualTo(board);
     }
 
     @Test
     public void equals_transitive(){
-        int[][] input1 = {{0, 1, 2}, {3, 4, 5}};
-        int[][] input2 = {{0, 1, 2}, {3, 4, 5}};
-        int[][] input3 = {{0, 1, 2}, {3, 4, 5}};
+        int[][] input1 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        int[][] input2 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        int[][] input3 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
 
         Board board1 = new Board(input1);
         Board board2 = new Board(input2);
@@ -379,9 +403,8 @@ public class BoardTest {
 
     @Test
     public void equals_symmetric(){
-        int[][] input1 = {{0, 1, 2}, {3, 4, 5}};
-        int[][] input2 = {{0, 1, 2}, {3, 4, 5}};
-        int[][] input3 = {{0, 1, 2}, {3, 4, 5}};
+        int[][] input1 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        int[][] input2 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
 
         Board board1 = new Board(input1);
         Board board2 = new Board(input2);
@@ -392,7 +415,7 @@ public class BoardTest {
 
     @Test
     public void equals_nonNull(){
-        int[][] input = {{0, 1, 2}, {3, 4, 5}};
+        int[][] input = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         Board board = new Board(input);
         assertThat(board).isNotEqualTo(null);
     }
@@ -616,9 +639,9 @@ public class BoardTest {
         };
         Board board = new Board(input);
         assertThat(board.toString()).isEqualTo("" +
-                "2\n" +
-                " 1  2\n" +
-                " 3  0\n" +
+                "2 \n" +
+                " 1  2 \n" +
+                " 3  0 \n" +
                 "\n");
     }
 
@@ -631,10 +654,10 @@ public class BoardTest {
         };
         Board board = new Board(input);
         assertThat(board.toString()).isEqualTo("" +
-                "3\n" +
-                " 0  1  2\n" +
-                " 3  4  5\n" +
-                " 6  7  8\n" +
+                "3 \n" +
+                " 0  1  2 \n" +
+                " 3  4  5 \n" +
+                " 6  7  8 \n" +
                 "\n");
     }
 
@@ -645,18 +668,16 @@ public class BoardTest {
                 {6, 7, 8, 9, 10},
                 {11, 12, 13, 14, 15},
                 {16, 17, 18, 19, 20},
-                {21, 22, 23, 24, 25},
-                {26, 27, 28, 29, 0},
+                {21, 22, 23, 24, 0}
         };
         Board board = new Board(input);
         assertThat(board.toString()).isEqualTo("" +
-                "5\n" +
-                " 1  2  3  4  5\n" +
-                " 6  7  8  9 10\n" +
-                "11 12 13 14 15\n" +
-                "16 17 18 19 20\n" +
-                "21 22 23 24 25\n" +
-                "26 27 28 29  0\n" +
+                "5 \n" +
+                " 1  2  3  4  5 \n" +
+                " 6  7  8  9 10 \n" +
+                "11 12 13 14 15 \n" +
+                "16 17 18 19 20 \n" +
+                "21 22 23 24  0 \n" +
                 "\n");
     }
 }
