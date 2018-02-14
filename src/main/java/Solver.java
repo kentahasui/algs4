@@ -143,6 +143,7 @@ public class Solver {
         return solution;
     }
 
+    /** Command line client */
     public static void main(String[] args) {
         // create initial board from file
         In in = new In(args[0]);

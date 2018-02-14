@@ -30,8 +30,6 @@ public class Board {
 
     // Cached values
     private Boolean isGoal;
-    private int manhattan = INVALID;
-    private int hamming = INVALID;
 
     /**
      * Constructor.
@@ -126,14 +124,6 @@ public class Board {
      * that are out of place.
      */
     public int hamming(){
-        if (hamming == INVALID) {
-            hamming = calculateHamming();
-        }
-        return hamming;
-    }
-
-    /** Helper method to calculate the hamming value for this board */
-    private int calculateHamming(){
         int hammingVal = 0;
         for (int index = 0; index < nSquared; index++){
             // Skip blank
@@ -155,27 +145,21 @@ public class Board {
      * A non-negative integer.
      */
     public int manhattan(){
-        if (manhattan == INVALID){
-            manhattan = calculateManhattan();
-        }
-        return manhattan;
-    }
-
-    private int calculateManhattan(){
-        int manhattanVal = 0;
+        int manhattan = 0;
         for (int index = 0; index < nSquared; index++){
             // Blanks shouldn't be factored into the manhattan distance
             if (isBlank(index)) { continue; }
 
-            manhattanVal += distance(index);
+            manhattan += distance(index);
         }
-        return manhattanVal;
+        return manhattan;
     }
 
     /**
-     * Manhattan distance between the block at a given position
-     * @param index
-     * @return
+     * Manhattan distance between the block at a given position to goal
+     * position
+     * @param index 1D index of the given block
+     * @return The 1D index of the goal block for the value grid[index]
      */
     private int distance(int index){
         int goalIndex = toGoalIndex(index);
@@ -394,7 +378,7 @@ public class Board {
     @Override
     public String toString(){
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("%d \n", dimension()));
+        builder.append(String.format("\n%d \n", dimension()));
 
         int[][] board2D = boardTo2DArray();
         for (int row = 0; row < n; row++){
@@ -403,7 +387,7 @@ public class Board {
             }
             builder.append("\n");
         }
-        builder.append("\n");
+        builder.deleteCharAt(builder.length()-1);
         return builder.toString();
     }
 }

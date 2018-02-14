@@ -687,10 +687,11 @@ public class BoardTest {
         };
         Board board = new Board(input);
         assertThat(board.toString()).isEqualTo("" +
+                "\n" +
                 "2 \n" +
                 " 1  2 \n" +
-                " 3  0 \n" +
-                "\n");
+                " 3  0 "
+        );
     }
 
     @Test
@@ -702,11 +703,11 @@ public class BoardTest {
         };
         Board board = new Board(input);
         assertThat(board.toString()).isEqualTo("" +
+                "\n" +
                 "3 \n" +
                 " 0  1  2 \n" +
                 " 3  4  5 \n" +
-                " 6  7  8 \n" +
-                "\n");
+                " 6  7  8 ");
     }
 
     @Test
@@ -720,12 +721,12 @@ public class BoardTest {
         };
         Board board = new Board(input);
         assertThat(board.toString()).isEqualTo("" +
+                "\n" +
                 "5 \n" +
                 " 1  2  3  4  5 \n" +
                 " 6  7  8  9 10 \n" +
                 "11 12 13 14 15 \n" +
                 "16 17 18 19 20 \n" +
-                "21 22 23 24  0 \n" +
-                "\n");
+                "21 22 23 24  0 ");
     }
 }

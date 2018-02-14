@@ -366,4 +366,18 @@ public class SolverTest {
         Solver solver = new Solver(board);
         assertThat(solver.solution()).isNull();
     }
+
+    @Test
+    public void puzzle_2x2_06(){
+        int[][] initial = {
+                {0, 3},
+                {2, 1}
+        };
+
+        int[][] move1 = {
+
+        };
+
+        Board board = new Board(initial);
+    }
 }
