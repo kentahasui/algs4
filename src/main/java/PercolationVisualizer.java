@@ -19,8 +19,6 @@
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 
-import java.awt.*;
-
 public class PercolationVisualizer {
 
     // delay in miliseconds (controls animation speed)
@@ -53,7 +51,6 @@ public class PercolationVisualizer {
         }
 
         // write status text
-        StdDraw.setFont(new Font("SansSerif", Font.PLAIN, 12));
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.text(0.25*n, -0.025*n, opened + " open sites");
         if (perc.percolates()) StdDraw.text(0.75*n, -0.025*n, "percolates");

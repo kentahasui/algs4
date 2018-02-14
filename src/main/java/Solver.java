@@ -42,11 +42,14 @@ public class Solver {
 
     /**
      * Constructor.
+     *
      * @param initial An initial board.
      * @throws IllegalArgumentException if the board is null.
      */
-    public Solver(Board initial){
-        if (initial == null) { throw new IllegalArgumentException("null input"); }
+    public Solver(Board initial) {
+        if (initial == null) {
+            throw new IllegalArgumentException("null input");
+        }
 
         // Priority queue for A* search starting from initial board
         MinPQ<BoardMove> pq = new MinPQ<>();
@@ -61,7 +64,7 @@ public class Solver {
         BoardMove currentTwin = pqTwin.delMin();
 
         // Search until we find the goal board
-        while(!current.board.isGoal() && !currentTwin.board.isGoal()){
+        while (!current.board.isGoal() && !currentTwin.board.isGoal()) {
             addNeighborsToQueue(current, pq);
             addNeighborsToQueue(currentTwin, pqTwin);
             current = pq.delMin();
@@ -80,38 +83,50 @@ public class Solver {
      * Each node in the queue has a pointer to the parent, as well as
      * the number of moves made so far in this specific path down the tree.
      */
-    private void addNeighborsToQueue(BoardMove current, MinPQ<BoardMove> queue){
-        for (Board neighbor : current.board.neighbors()){
-            if (equalToParent(current, neighbor)) { continue; }
+    private void addNeighborsToQueue(BoardMove current, MinPQ<BoardMove> queue) {
+        for (Board neighbor : current.board.neighbors()) {
+            if (equalToParent(current, neighbor)) {
+                continue;
+            }
             queue.insert(new BoardMove(current.moves + 1, current, neighbor));
         }
     }
 
     /**
      * Determines whether a boardMove can be skipped.
-     * @param current Current node that we are processing.
+     *
+     * @param current  Current node that we are processing.
      * @param neighbor A neighbor of this node.
      * @return True if the neighbor is the same as the node's parent.
      * Returns False if the current node is the initial board.
      * Returns False in all other cases.
      */
-    private boolean equalToParent(BoardMove current, Board neighbor){
-        if (current == null || neighbor == null) { return false; }
-        if (current.prev == null) { return false; }
+    private boolean equalToParent(BoardMove current, Board neighbor) {
+        if (current == null || neighbor == null) {
+            return false;
+        }
+        if (current.prev == null) {
+            return false;
+        }
         return neighbor.equals(current.prev.board);
     }
 
-    /** True for solvable boards. */
+    /**
+     * True for solvable boards.
+     */
     public boolean isSolvable() {
         return solvable;
     }
 
     /**
      * Number of moves to get to the goal
+     *
      * @return -1 if the board is unsolvable.
      */
-    public int moves(){
-        if (!isSolvable()) { return -1; }
+    public int moves() {
+        if (!isSolvable()) {
+            return -1;
+        }
         return goal.moves;
     }
 
@@ -127,12 +142,14 @@ public class Solver {
      */
     public Iterable<Board> solution() {
         // Guard clause
-        if (!isSolvable()) { return null; }
+        if (!isSolvable()) {
+            return null;
+        }
 
         // Travel from goal (leaf) to root
         ResizingArrayStack<Board> solution = new ResizingArrayStack<>();
         BoardMove current = goal;
-        while(current != null){
+        while (current != null) {
             solution.push(current.board);
             current = current.prev;
         }
@@ -140,7 +157,9 @@ public class Solver {
         return solution;
     }
 
-    /** Command line client */
+    /**
+     * Command line client
+     */
     public static void main(String[] args) {
         // create initial board from file
         In in = new In(args[0]);
@@ -173,13 +192,13 @@ public class Solver {
      */
     private class BoardMove implements Comparable<BoardMove> {
         // Moves so far of this SPECIFIC PATH within the A* search algorithm
-        private int moves;
-        private int priority;
-        private int manhattan;
-        private BoardMove prev;
-        private Board board;
+        private final int moves;
+        private final int priority;
+        private final int manhattan;
+        private final BoardMove prev;
+        private final Board board;
 
-        private BoardMove(int moves, BoardMove prev, Board board){
+        private BoardMove(int moves, BoardMove prev, Board board) {
             this.moves = moves;
             this.manhattan = board.manhattan();
             this.priority = moves + manhattan;
@@ -188,8 +207,8 @@ public class Solver {
         }
 
         @Override
-        public int compareTo(BoardMove other){
-            // Break ties by smaller manhattan
+        public int compareTo(BoardMove other) {
+            // Break ties by smaller manhattan distance
             if (priority == other.priority) {
                 return Integer.compare(manhattan, other.manhattan);
             }
