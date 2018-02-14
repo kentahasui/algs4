@@ -19,15 +19,18 @@ public class BoardTest {
         new Board(null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void oneByOneBoard_shouldThrowException(){
-        int[][] input = {{1}}; // new int[1][1];
-        new Board(input);
-    }
-
     ////////////////////////////////////////////////////////////////////////////
     // Unit tests for dimension()
     ////////////////////////////////////////////////////////////////////////////
+    @Test
+    public void oneByOne_dimension_shouldBeOne(){
+        int[][] input = {
+                {0}
+        };
+        Board board = new Board(input);
+        assertThat(board.dimension()).isEqualTo(1);
+    }
+
     @Test
     public void twoByTwo_dimension_shouldBeTwo(){
         int[][] input = {
@@ -65,6 +68,15 @@ public class BoardTest {
     // Unit tests for isGoal()
     ////////////////////////////////////////////////////////////////////////////
     @Test
+    public void oneByOne_shouldBeGoal(){
+        int[][] input = {
+                {0}
+        };
+        Board board = new Board(input);
+        assertThat(board.isGoal()).isTrue();
+    }
+
+    @Test
     public void twoByTwo_solved_shouldBeGoal(){
         int[][] input = {
                 {1, 2},
@@ -100,6 +112,15 @@ public class BoardTest {
     ////////////////////////////////////////////////////////////////////////////
     // Unit tests for hamming()
     ////////////////////////////////////////////////////////////////////////////
+    @Test
+    public void oneByOne_hammingShouldBeZero(){
+        int[][] input = {
+                {0}
+        };
+        Board board = new Board(input);
+        assertThat(board.hamming()).isEqualTo(0);
+    }
+
     @Test
     public void twoByTwo_solved_hammingShouldBeZero(){
         int[][] input = {
@@ -191,6 +212,15 @@ public class BoardTest {
     ////////////////////////////////////////////////////////////////////////////
     // Unit tests for manhattan()
     ////////////////////////////////////////////////////////////////////////////
+    @Test
+    public void oneByOne_manhattanShouldBeZero(){
+        int[][] input = {
+                {0}
+        };
+        Board board = new Board(input);
+        assertThat(board.manhattan()).isEqualTo(0);
+    }
+
     @Test
     public void twoByTwo_solved_manhattanShouldBeZero(){
         int[][] input = {
@@ -297,6 +327,15 @@ public class BoardTest {
     ////////////////////////////////////////////////////////////////////////////
     // Unit tests for twin()
     ////////////////////////////////////////////////////////////////////////////
+    @Test
+    public void oneByOne_hammingShouldThrowException(){
+        // TODO(kentahasui): implement
+        int[][] input = {
+                {0}
+        };
+        Board board = new Board(input);
+    }
+
     @Test
     public void twoByTwo_blankAtFirstPosition_twin(){
         int[][] input = {
@@ -423,6 +462,15 @@ public class BoardTest {
     ////////////////////////////////////////////////////////////////////////////
     // Unit tests for neighbors()
     ////////////////////////////////////////////////////////////////////////////
+    @Test
+    public void oneByOne_shouldHaveNoNeighbors(){
+        int[][] input = {
+                {0}
+        };
+        Board board = new Board(input);
+        assertThat(board.neighbors()).isEmpty();
+    }
+
     @Test
     public void twoByTwo_blankAtTopLeft_shouldHaveTwoNeighbors(){
         int[][] input = {

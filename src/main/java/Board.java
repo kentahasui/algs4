@@ -1,11 +1,9 @@
 /******************************************************************************
  *  Compilation:  javac Board.java
  *  Execution:    java Board input.txt
- *  Dependencies:
+ *  Dependencies: LinkedQueue.java
  *
  *  A class representing a board to use in an 8-puzzle application.
- *
- *
  *
  ******************************************************************************/
 
@@ -41,7 +39,7 @@ public class Board {
      */
     public Board(int[][] input){
         if (input == null) { throw new IllegalArgumentException("Null input"); }
-        if (input.length <= 1) { throw new IllegalArgumentException("Input too small"); }
+        if (input.length <= 0) { throw new IllegalArgumentException("Input too small"); }
 
         n = input.length;
         nSquared = n * n;
@@ -181,13 +179,6 @@ public class Board {
      */
     private int distance(int index){
         int goalIndex = toGoalIndex(index);
-
-
-        System.out.printf("Index %d | value %d | goalIndex %d | verticalDistance %d | horizontalDistance %d\n",
-                index, (int) board[index], goalIndex,
-                verticalDistance(index, goalIndex),
-                horizontalDistance(index, goalIndex));
-
         return verticalDistance(index, goalIndex) +
                 horizontalDistance(index, goalIndex);
 
@@ -254,8 +245,11 @@ public class Board {
 
     /**
      * @return A board with any two (non-blank) blocks switched
+     * If dimension is 1, returns the same board.
      */
     public Board twin(){
+        if (dimension() == 1) { return new Board(boardTo2DArray()); }
+
         int blockIndex1 = firstBlockIndex(0);
         int blockIndex2 = firstBlockIndex(blockIndex1+1);
 
