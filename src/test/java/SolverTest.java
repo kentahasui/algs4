@@ -367,17 +367,57 @@ public class SolverTest {
         assertThat(solver.solution()).isNull();
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    // UAT
+    ////////////////////////////////////////////////////////////////////////////
     @Test
-    public void puzzle_2x2_06(){
+    public void puzzle_2x2_06_numberOfMovesShouldBeMovesDownAGivenPathToGoal_shouldNotBeTotalMovesMade(){
         int[][] initial = {
                 {0, 3},
                 {2, 1}
         };
 
         int[][] move1 = {
+                {2, 3},
+                {0, 1}
+        };
 
+        int[][] move2 = {
+                {2, 3},
+                {1, 0}
+        };
+
+        int[][] move3 = {
+                {2, 0},
+                {1, 3}
+        };
+
+        int[][] move4 = {
+                {0, 2},
+                {1, 3}
+        };
+
+        int[][] move5 = {
+                {1, 2},
+                {0, 3}
+        };
+
+        int[][] move6 = {
+                {1, 2},
+                {3, 0}
         };
 
         Board board = new Board(initial);
+        Solver solver = new Solver(board);
+        assertThat(solver.moves()).isEqualTo(6);
+        assertThat(solver.solution()).containsExactly(
+                new Board(initial),
+                new Board(move1),
+                new Board(move2),
+                new Board(move3),
+                new Board(move4),
+                new Board(move5),
+                new Board(move6)
+        ).inOrder();
     }
 }

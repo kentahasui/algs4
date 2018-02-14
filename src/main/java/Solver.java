@@ -40,9 +40,6 @@ public class Solver {
     // Whether this board is indeed solvable
     private final boolean solvable;
 
-    // Moves so far within the A* search algorithm
-    private int moves;
-
     /**
      * Constructor.
      * @param initial An initial board.
@@ -57,16 +54,14 @@ public class Solver {
         MinPQ<BoardMove> pqTwin = new MinPQ<>();
 
         // Initialize A* search algorithm
-        moves = 0;
-        pq.insert(new BoardMove(moves, null, initial));
-        pqTwin.insert(new BoardMove(moves, null, initial.twin()));
+        pq.insert(new BoardMove(0, null, initial));
+        pqTwin.insert(new BoardMove(0, null, initial.twin()));
 
         BoardMove current = pq.delMin();
         BoardMove currentTwin = pqTwin.delMin();
 
         // Search until we find the goal board
         while(!current.board.isGoal() && !currentTwin.board.isGoal()){
-            moves++;
             addNeighborsToQueue(current, pq);
             addNeighborsToQueue(currentTwin, pqTwin);
             current = pq.delMin();
@@ -82,11 +77,13 @@ public class Solver {
      * Helper method to add valid neighbors to a priority queue.
      * Reduces code duplication, as we run this operation for both
      * a board and its twin.
+     * Each node in the queue has a pointer to the parent, as well as
+     * the number of moves made so far in this specific path down the tree.
      */
     private void addNeighborsToQueue(BoardMove current, MinPQ<BoardMove> queue){
         for (Board neighbor : current.board.neighbors()){
             if (equalToParent(current, neighbor)) { continue; }
-            queue.insert(new BoardMove(moves, current, neighbor));
+            queue.insert(new BoardMove(current.moves + 1, current, neighbor));
         }
     }
 
@@ -115,7 +112,7 @@ public class Solver {
      */
     public int moves(){
         if (!isSolvable()) { return -1; }
-        return moves;
+        return goal.moves;
     }
 
     /**
@@ -175,18 +172,27 @@ public class Solver {
      * follow the parent pointers until you get to the move.
      */
     private class BoardMove implements Comparable<BoardMove> {
+        // Moves so far of this SPECIFIC PATH within the A* search algorithm
+        private int moves;
         private int priority;
+        private int manhattan;
         private BoardMove prev;
         private Board board;
 
         private BoardMove(int moves, BoardMove prev, Board board){
-            this.priority = moves + board.manhattan();
+            this.moves = moves;
+            this.manhattan = board.manhattan();
+            this.priority = moves + manhattan;
             this.prev = prev;
             this.board = board;
         }
 
         @Override
         public int compareTo(BoardMove other){
+            // Break ties by smaller manhattan
+            if (priority == other.priority) {
+                return Integer.compare(manhattan, other.manhattan);
+            }
             return Integer.compare(priority, other.priority);
         }
     }

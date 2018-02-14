@@ -13,7 +13,6 @@ import edu.princeton.cs.algs4.LinkedQueue;
 public class Board {
     // Value that represents a blank tile in the board
     private static final int BLANK = 0;
-    private static final int INVALID = -1;
 
     // Board dimension
     private final int n;
@@ -67,7 +66,7 @@ public class Board {
      * For all other indices, returns index+1.
      */
     private int toGoalValue(int index){
-        if (index == nSquared - 1) { return 0; }
+        if (index == lowerRightIndex) { return 0; }
         return index + 1;
     }
 
