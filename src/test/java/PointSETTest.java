@@ -343,5 +343,4 @@ public class PointSETTest {
 
         assertThat(set.nearest(point)).isEqualTo(new Point2D(0.71, 0.71));
     }
-
 }
