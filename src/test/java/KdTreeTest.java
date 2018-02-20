@@ -144,7 +144,7 @@ public class KdTreeTest {
     }
 
     @Test
-    public void nonEmptytree_containsPoint_containsShouldBeTrue(){
+    public void nonEmptyTree_containsPoint_containsShouldBeTrue(){
         KdTree tree = new KdTree();
         tree.insert(new Point2D(0.0, 0.0));
         tree.insert(new Point2D(1, 1));
@@ -342,6 +342,27 @@ public class KdTreeTest {
         tree.insert(new Point2D(0.88, 0.88));
 
         assertThat(tree.nearest(point)).isEqualTo(new Point2D(0.71, 0.71));
+    }
+
+    @Test
+    public void nearest_sameKeyAsNode_farther(){
+        KdTree tree = new KdTree();
+        Point2D query = new Point2D(0.6, 0.5);
+
+        // Root
+        tree.insert(new Point2D(0.5, 0.6));
+
+        // Same key as query, but distance is farther
+        tree.insert(new Point2D(0.99, 0.5));
+
+        // In left subtree: closest so far
+        tree.insert(new Point2D(0.61, 0.49));
+
+        // In right subtree: 2nd closest point
+        tree.insert(new Point2D(0.67, 0.55));
+
+        assertThat(tree.nearest(query)).isEqualTo(new Point2D(0.61, 0.49));
+
     }
 }
 
