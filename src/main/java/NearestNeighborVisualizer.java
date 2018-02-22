@@ -40,12 +40,14 @@ public class NearestNeighborVisualizer {
             double x = StdDraw.mouseX();
             double y = StdDraw.mouseY();
             Point2D query = new Point2D(x, y);
+            if (StdDraw.mousePressed()) { System.out.println(query); }
 
             // draw all of the points
             StdDraw.clear();
             StdDraw.setPenColor(StdDraw.BLACK);
             StdDraw.setPenRadius(0.01);
             brute.draw();
+            kdtree.draw();
 
             // draw in red the nearest neighbor (using brute-force algorithm)
             StdDraw.setPenRadius(0.03);

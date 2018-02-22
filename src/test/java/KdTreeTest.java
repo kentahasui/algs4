@@ -1,5 +1,6 @@
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.StdDraw;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -362,7 +363,12 @@ public class KdTreeTest {
         tree.insert(new Point2D(0.67, 0.55));
 
         assertThat(tree.nearest(query)).isEqualTo(new Point2D(0.61, 0.49));
+    }
 
+    @Test
+    public void nearestNeighborOnOtherSideOfDividingLine(){
+        KdTree tree = new KdTree();
+        Point2D query = new Point2D(0.6, 0.5);
     }
 }
 
