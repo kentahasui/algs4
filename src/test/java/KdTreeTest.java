@@ -171,7 +171,7 @@ public class KdTreeTest {
     }
 
     @Test
-    public void emptytree_rangeShouldBeEmpty(){
+    public void emptyTree_rangeShouldBeEmpty(){
         KdTree tree = new KdTree();
         RectHV rect = new RectHV(0.0, 0.0, 0.5, 0.5);
         assertThat(tree.range(rect)).isEmpty();
@@ -233,7 +233,7 @@ public class KdTreeTest {
     }
 
     @Test
-    public void emptytree_nearestShouldBeNull(){
+    public void emptyTree_nearestShouldBeNull(){
         KdTree tree = new KdTree();
         Point2D point = new Point2D(0.1, 0.2);
         assertThat(tree.nearest(point)).isNull();
@@ -282,12 +282,12 @@ public class KdTreeTest {
     }
 
     @Test
-    public void twoPointsEquidistantFromQueryPoint_shouldBreakTiesByNaturalOrder(){
+    public void twoPointsEquidistantFromQueryPoint_shouldBreakTiesByInsertionOrder(){
         KdTree tree = new KdTree();
         Point2D point = new Point2D(0.5, 0.5);
         tree.insert(new Point2D(0.6, 0.6));
         tree.insert(new Point2D(0.4, 0.4));
-        assertThat(tree.nearest(point)).isEqualTo(new Point2D(0.4, 0.4));
+        assertThat(tree.nearest(point)).isEqualTo(new Point2D(0.6, 0.6));
     }
 
     @Test
@@ -368,7 +368,23 @@ public class KdTreeTest {
     @Test
     public void nearestNeighborOnOtherSideOfDividingLine(){
         KdTree tree = new KdTree();
-        Point2D query = new Point2D(0.6, 0.5);
+        Point2D query = new Point2D(0.151, 0.500);
+        Point2D p1 = new Point2D(0.300, 0.600);
+        Point2D p2 = new Point2D(0.100, 0.500);
+
+        tree.insert(new Point2D(0.500, 0.500));
+        tree.insert(new Point2D(0.300, 0.600));
+        tree.insert(new Point2D(0.150, 0.150));
+        tree.insert(new Point2D(0.100, 0.500));
+        tree.insert(new Point2D(0.400, 0.700));
+
+        System.out.printf("%s -> query: %s\n", p1, p1.distanceSquaredTo(query));
+        System.out.printf("%s -> query: %s\n", p2, p2.distanceSquaredTo(query));
+        System.out.println();
+        System.out.println(tree.nearest(query));
+
+        assertThat(tree.nearest(query)).isEqualTo(
+                new Point2D(0.100, 0.500));
     }
 }
 

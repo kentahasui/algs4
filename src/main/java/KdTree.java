@@ -8,6 +8,7 @@
  *  This class is implemented using a 2-dimensional tree.
  *
  ******************************************************************************/
+import edu.princeton.cs.algs4.LinkedStack;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
@@ -16,8 +17,14 @@ import java.util.*;
 import java.util.List;
 
 public class KdTree {
+    // Number of points in set (NOT the number of nodes in set)
     private int size = 0;
+    // Root node
     private Node root = null;
+
+    // Closest distance and point for nearest() method
+    private double closestDistance;
+    private Point2D closestPoint;
 
     public boolean isEmpty() { return size == 0; }
     public int size() { return size; }
@@ -32,7 +39,7 @@ public class KdTree {
     public void insert(Point2D point) {
         checkPointIsNotNull(point);
         checkPointIsInUnitSquare(point);
-        root = insert(point, root, Dimension.X);
+        root = insert(point, root, Dimension.X, new LinkedStack<Node>());
     }
 
     /**
@@ -45,20 +52,23 @@ public class KdTree {
      * @return The current node being processed. If a new node is created
      * (insert into leaf), returns a new node.
      */
-    private Node insert(Point2D point, Node currentNode, Dimension dimension){
+    private Node insert(Point2D point, Node currentNode, Dimension dimension, LinkedStack<Node> parents){
         // Base case: Insert into root or leaf
         if (currentNode == null) {
             size++;
-            return new Node(point, dimension);
+            return new Node(point, dimension, parents);
         }
+
+        // Recursive case: Keep searching
+        parents.push(currentNode);
 
         // Point's key is less than current node: insert into LEFT subtree
         if (currentNode.pointInLeftSubtree(point)){
-            currentNode.left = insert(point, currentNode.left, dimension.next());
+            currentNode.left = insert(point, currentNode.left, dimension.next(), parents);
         }
         // Point's key is greater than current node: insert into RIGHT subtree
         else if (currentNode.pointInRightSubtree(point)) {
-            currentNode.right = insert(point, currentNode.right, dimension.next());
+            currentNode.right = insert(point, currentNode.right, dimension.next(), parents);
         }
         // Point's key is equal to current node and point is not already in set:
         // Add point to current node
@@ -125,7 +135,7 @@ public class KdTree {
      * Private helper method to find all points contained within or
      * on the boundary of a query rectangle.
      *
-     * Adds all relevant point to the <em>out</em> parameter.
+     * Adds all relevant points to the <em>out</em> parameter.
      *
      * @param rect The query rectangle.
      * @param currentNode The current node being processed.
@@ -163,53 +173,39 @@ public class KdTree {
      */
     public Point2D nearest(Point2D point){
         checkPointIsNotNull(point);
-        ClosestPoint closest = new ClosestPoint();
-        nearest(point, root, closest);
-        return closest.point;
+        closestPoint = null;
+        closestDistance = Double.POSITIVE_INFINITY;
+        nearest(point, root);
+        return closestPoint;
     }
 
-    /**
-     * Recursive helper method for nearest neighbor.
-     * Prunes subtrees for efficient search.
-     * @param point Query point
-     * @param currentNode Currently processing node
-     * @param closestSoFar Stores the closest point so far, as well as the
-     *                     distance from that point to the query point
-     */
-    private void nearest(Point2D point, Node currentNode, ClosestPoint closestSoFar){
+    private void nearest(Point2D queryPoint, Node node){
         // Base case: we hit a leaf. Do nothing.
-        if (currentNode == null) return;
+        if (node == null) return;
 
-        // Calculate distances from all points in node to query point
-        // Processes points in natural order
-        ClosestPoint closestInNode = new ClosestPoint();
-        for (Point2D currentPoint : currentNode.points){
-            ClosestPoint current = new ClosestPoint(point, currentPoint);
-            if (current.compareTo(closestInNode) < 0){
-                closestInNode.update(current);
+        /*
+         * Calculate the closest point in the node
+         */
+        for (Point2D point : node.points){
+            double distance = point.distanceSquaredTo(queryPoint);
+            if (distance < closestDistance){
+                closestDistance = distance;
+                closestPoint = point;
             }
         }
 
-        // TODO(kentahasui): process points with equal distances
-        // Found new closest node: must process points in both subtrees
-        // (both sides of the dividing line)
-        if (closestInNode.compareTo(closestSoFar) < 0) {
-            closestSoFar.update(closestInNode);
-            nearest(point, currentNode.subtreeContainingPoint(point), closestSoFar);
-            nearest(point, currentNode.subtreeNotContainingPoint(point), closestSoFar);
+        /*
+         * Pruning case: If all points along the segment are farther than the
+         * closest point so far, only check the closest subtree
+         */
+        double distanceToRect = node.rect.distanceSquaredTo(queryPoint);
+        if (distanceToRect > closestDistance){
+            nearest(queryPoint, node.subtreeContainingPoint(queryPoint));
         }
-
-        // If the point is on this dividing line, we still have to
-        // look at both sides of the dividing line
-        else if (currentNode.hasSameKey(point)) {
-            nearest(point, currentNode.left, closestSoFar);
-            nearest(point, currentNode.right, closestSoFar);
-        }
-
-        // All points in this node are further away than closest so far.
-        // Only need to process points on the same side of the dividing line.
+        // Otherwise we must check other points
         else {
-            nearest(point, currentNode.subtreeContainingPoint(point), closestSoFar);
+            nearest(queryPoint, node.subtreeContainingPoint(queryPoint));
+            nearest(queryPoint, node.subtreeNotContainingPoint(queryPoint));
         }
     }
 
@@ -227,26 +223,14 @@ public class KdTree {
 
     /** Draws points to stdDraw */
     public void draw(){
-        draw(root, new SegmentCollection());
+        draw(root);
     }
 
-    private void draw(Node node, SegmentCollection segments){
-        // Base case: hit leaf
+    private void draw(Node node){
         if (node == null) return;
-
-        StdDraw.setPenRadius(0.005);
-        // Draw point
-        for (Point2D point : node.points) {
-            point.draw();
-        }
-        StdDraw.setPenRadius();
-
-        // Draw segment
-        segments.findAndDrawSegment(node);
-
-        // Recurse
-        draw(node.left, segments);
-        draw(node.right, segments);
+        node.draw();
+        draw(node.left);
+        draw(node.right);
     }
 
     /**
@@ -259,14 +243,98 @@ public class KdTree {
         private final double key;
         private final Dimension dimension;
         private final TreeSet<Point2D> points;
+        private RectHV rect;
         private Node left;
         private Node right;
 
-        private Node(Point2D point, Dimension dimension) {
+        private Node(Point2D point, Dimension dimension, LinkedStack<Node> parents){
             this.points = new TreeSet<>();
             this.points.add(point);
             this.dimension = dimension;
             this.key = dimension.getKey(point);
+            this.rect = getRect(point, parents);
+        }
+
+        private void draw(){
+            StdDraw.setPenRadius(0.01);
+            for (Point2D point : points) {
+                point.draw();
+            }
+            StdDraw.setPenRadius();
+            dimension.drawSegment(this);
+        }
+
+        private RectHV getRect(Point2D point, LinkedStack<Node> parents){
+            // Corner case: root node.
+            // Draw a vertical line at x = key
+            // Splits the unit square in half at the specified x coordinate
+            if (parents.isEmpty()){
+                return new RectHV(0.0, 0.0, key, 1.0);
+            }
+
+            Node directParent = parents.peek();
+            RectHV parentRect = directParent.rect;
+            double xmin;
+            double ymin;
+            double xmax = -1;
+            double ymax = -1;
+//            if (directParent.pointInLeftSubtree(point)){
+//
+//            }
+//            else {
+//
+//            }
+
+            switch(dimension) {
+                case X:
+                    xmin = parentRect.xmin();
+                    xmax = key;
+                    // Current point is part of left subtree
+                    if (directParent.pointInLeftSubtree(point)) {
+                        ymin = parentRect.ymin();
+                        ymax = parentRect.ymax();
+                    }
+                    // Right subtree
+                    else {
+                        ymin = parentRect.ymax();
+                        for (Node parent: parents){
+                            if (point.y() < parent.rect.ymax()){
+                                ymax = parent.rect.ymax();
+                                break;
+                            }
+                        }
+                        if (ymax < 0) ymax = 1.0;
+                    }
+                    break;
+                default: // Y
+                    ymin = parentRect.ymin();
+                    ymax = key;
+                    // left subtree
+                    if (point.x() < parentRect.xmax()) {
+                        xmin = parentRect.xmin();
+                        xmax = parentRect.xmax();
+                    }
+                    // right subtree
+                    else {
+                        // All x coordinates in right subtree are
+                        // greater than all x coordinates in right subtree
+                        xmin = parentRect.xmax();
+
+                        // This line segment will continue until we
+                        // reach a parent on the right-hand side
+                        for (Node parent : parents){
+                            if (point.x() < parent.rect.xmax()){
+                                xmax = parent.rect.xmax();
+                                break;
+                            }
+                        }
+                        // If there are no such parents, draw the line to
+                        // the edge of the unit square
+                        if (xmax < 0) xmax = 1.0;
+                    }
+                    break;
+            }
+            return new RectHV(xmin, ymin, xmax, ymax);
         }
 
         private Node subtreeContainingPoint(Point2D otherPoint) {
@@ -313,6 +381,14 @@ public class KdTree {
             public double getMin(RectHV rect) { return rect.xmin(); }
             @Override
             public double getMax(RectHV rect) { return rect.xmax(); }
+            @Override
+            public void drawSegment(Node node){
+                StdDraw.setPenColor(StdDraw.RED);
+                Point2D p = new Point2D(node.key, node.rect.ymin());
+                Point2D q = new Point2D(node.key, node.rect.ymax());
+                p.drawTo(q);
+                StdDraw.setPenColor();
+            }
         },
         Y {
             @Override
@@ -323,273 +399,20 @@ public class KdTree {
             public double getMin(RectHV rect) { return rect.ymin(); }
             @Override
             public double getMax(RectHV rect) { return rect.ymax(); }
+            @Override
+            public void drawSegment(Node node){
+                StdDraw.setPenColor(StdDraw.BLUE);
+                Point2D p = new Point2D(node.rect.xmin(), node.key);
+                Point2D q = new Point2D(node.rect.xmax(), node.key);
+                p.drawTo(q);
+                StdDraw.setPenColor();
+            }
         };
 
         public Dimension next() { return null; }
-
         public double getKey(Point2D point){ return -1; }
         public double getMin(RectHV rect) { return -1; }
         public double getMax(RectHV rect) { return -1; }
+        public void drawSegment(Node node) { }
     }
-
-    /**
-     * Represents the closest point to a given query point.
-     * Helper class for <em>nearest()</em> method.
-     * Uses squared euclidean distance to the query point as the closeness
-     * metric.
-     */
-    private static class ClosestPoint {
-        Point2D point;
-
-        double distance;
-
-        private ClosestPoint(){
-            point = null;
-            distance = Double.POSITIVE_INFINITY;
-        }
-
-        private ClosestPoint(Point2D queryPoint, Point2D currentPoint){
-            this.point = currentPoint;
-            this.distance = queryPoint.distanceSquaredTo(currentPoint);
-        }
-
-        /** Updates the current point with the point */
-        private void update(ClosestPoint otherPoint){
-            this.point = otherPoint.point;
-            this.distance = otherPoint.distance;
-        }
-
-        /** Compares two closest points by distance, then by natural order (y, then x). */
-        private int compareTo(ClosestPoint that){
-            if (distance < that.distance) return -1;
-            if (distance > that.distance) return 1;
-            return this.point.compareTo(that.point);
-        }
-    }
-
-    /**
-     * Helper class used purely for drawing.
-     */
-    private static class SegmentCollection {
-        private static final double MIN_POINT = 0.00;
-        private static final double MAX_POINT = 1.00;
-        private static final Segment LEFT_VERTICAL = new Segment(new Point2D(MIN_POINT, MIN_POINT), new Point2D(MIN_POINT, MAX_POINT));
-        private static final Segment RIGHT_VERTICAL = new Segment(new Point2D(MAX_POINT, MIN_POINT), new Point2D(MAX_POINT, MAX_POINT));
-        private static final Segment BOTTOM_HORIZONTAL = new Segment(new Point2D(MIN_POINT, MIN_POINT), new Point2D(MAX_POINT, MIN_POINT));
-        private static final Segment TOP_HORIZONTAL = new Segment(new Point2D(MIN_POINT, MAX_POINT), new Point2D(MAX_POINT, MIN_POINT));
-
-        private TreeSet<Segment> verticals;
-        private TreeSet<Segment> horizontals;
-
-        private SegmentCollection(){
-            verticals = new TreeSet<>(new XComparator());
-            verticals.add(LEFT_VERTICAL);
-            verticals.add(RIGHT_VERTICAL);
-
-            horizontals = new TreeSet<>(new YComparator());
-            horizontals.add(TOP_HORIZONTAL);
-            horizontals.add(BOTTOM_HORIZONTAL);
-        }
-
-        private void findAndDrawSegment(Node node){
-//            System.out.printf("Processing points %s\n", node.points);
-            TreeSet<Segment> perpendicular;
-            TreeSet<Segment> parallel;
-
-            switch(node.dimension){
-                case X:
-                    perpendicular = horizontals;
-                    parallel = verticals;
-                    break;
-                default: // Y
-                    perpendicular = verticals;
-                    parallel = horizontals;
-            }
-//
-//            System.out.printf("Perpendicular: %s\n", perpendicular);
-//            System.out.printf("Parallel:      %s\n", parallel);
-
-            Point2D smallestPoint = node.points.first();
-            NavigableSet<Segment> lesserLines = perpendicular.headSet(smallest(node), false);
-            Point2D minEndpoint = endpoint(node, lesserLines.descendingSet());
-
-            Point2D largestPoint = node.points.last();
-            NavigableSet<Segment> greaterLines = perpendicular.tailSet(largest(node), false);
-            Point2D maxEndpoint = endpoint(node, greaterLines);
-
-//            System.out.printf("Lesser perpendicular lines: %s\n", lesserLines);
-//            System.out.printf("Greater perpendicular lines: %s\n", greaterLines);
-//
-//            System.out.println("Min endpoint: " + minEndpoint);
-//            System.out.printf("Max endpoint: %s\n", maxEndpoint);
-
-            // Add the segment
-            Segment segment = new Segment(minEndpoint, maxEndpoint);
-
-            // Boundary case: points are at corners
-            switch(node.dimension){
-                case X:
-                    if (smallestPoint.y() == 0 || largestPoint.y() == 1) {
-                        // Point is on left vertical line
-                        if (node.key == 0){
-                            segment = LEFT_VERTICAL;
-                        }
-                        // Point is on right vertical line
-                        else if (node.key == 1){
-                            segment = RIGHT_VERTICAL;
-                        }
-
-                    }
-                    break;
-                case Y:
-                    // Node is horizontal, but it's at the lower or upper left corner
-                    if (smallestPoint.x() == 0 || largestPoint.x() == 1) {
-                        // Draw bottom horizontal line
-                        if (node.key == 0){
-                            segment = BOTTOM_HORIZONTAL;
-                        }
-                        // Draw top horizontal line
-                        else if (node.key == 1){
-                            segment = TOP_HORIZONTAL;
-                        }
-                    }
-                    break;
-            }
-            parallel.add(segment);
-
-            // Draw the actual segment
-//            System.out.printf("Drawing segment %s\n", segment);
-            if (node.dimension == Dimension.X) StdDraw.setPenColor(StdDraw.RED);
-            else StdDraw.setPenColor(StdDraw.BLUE);
-            segment.min.drawTo(segment.max);
-            StdDraw.setPenColor();
-
-            System.out.println();
-        }
-
-        private Point2D endpoint(Node node, NavigableSet<Segment> segments){
-            for (Segment segment : segments){
-                if (intersects(node, segment)){
-                    return endpoint(node, segment);
-                }
-            }
-            return null;
-        }
-
-        /**
-         * Gets the endpoint of a node
-         * @param node
-         * @param segment
-         * @return
-         */
-        private Point2D endpoint(Node node, Segment segment){
-            switch(node.dimension){
-                case X:
-                    return new Point2D(node.key, segment.min.y());
-                case Y:
-                    return new Point2D(segment.min.x(), node.key);
-                default:
-                    return null;
-            }
-        }
-
-        /**
-         * @param node A given node
-         * @param segment A perpendicular line.
-         *                If node.dimension is X (vertical), Segment must be a horizontal line
-         *                If node.dimension is Y (horizontal), segment must be a vertical line
-         * @return True if a line drawn from the node will intersect with the given line segment
-         */
-        private boolean intersects(Node node, Segment segment){
-            switch(node.dimension){
-                // We are processing a vertical node
-                // Check if a vertical line from this node will intersect
-                // the given (horizontal) line
-                case X:
-                    return segment.min.x() <= node.key && segment.max.x() >= node.key;
-                case Y:
-                    return segment.min.y() <= node.key && segment.max.y() >= node.key;
-                default:
-                    return false;
-            }
-        }
-
-        private Segment smallest(Node node){
-            Point2D point = node.points.first();
-            return new Segment(point, point);
-        }
-
-        private Segment largest(Node node){
-            Point2D point = node.points.last();
-            return new Segment(point, point);
-        }
-
-        /**
-         * Represents either a vertical or horizontal line segment
-         */
-        private static class Segment {
-            private Point2D min;
-            private Point2D max;
-
-            private Segment(Point2D min, Point2D max){
-                this.min = min;
-                this.max = max;
-            }
-
-            @Override
-            public boolean equals(Object other){
-                if (this == other) return true;
-                if (other == null) return false;
-                if (getClass() != other.getClass()) return false;
-                Segment otherSegment = (Segment)other;
-                return min.equals(otherSegment.min) && max.equals(otherSegment.max);
-            }
-
-            @Override
-            public String toString() {
-                return min + " -> " + max;
-            }
-        }
-
-        // Compare by X min, then by X max
-        private static class XComparator implements Comparator<Segment> {
-
-            @Override
-            public int compare(Segment segment1, Segment segment2) {
-                if (segment1 == segment2) return 0;
-                if (segment1 == null) return -1;
-                if (segment2 == null) return 1;
-                if (segment1.equals(segment2)) return 0;
-
-                // Compare only by x coordinates
-                if (segment1.min.x() < segment2.min.x()) return -1;
-                if (segment1.min.x() > segment2.min.x()) return 1;
-                if (segment1.max.x() < segment2.max.x()) return -1;
-                if (segment1.max.x() > segment2.max.x()) return 1;
-
-                // Then compare by y coordinates
-                return 0;
-            }
-        }
-
-        // Compare by Y min, then by Y max
-        private static class YComparator implements Comparator<Segment> {
-            @Override
-            public int compare(Segment segment1, Segment segment2){
-                if (segment1 == segment2) return 0;
-                if (segment1 == null) return -1;
-                if (segment2 == null) return 1;
-                if (segment1.equals(segment2)) return 0;
-
-                // Compare only by y coordinates
-                if (segment1.min.y() < segment2.min.y()) return -1;
-                if (segment1.min.y() > segment2.min.y()) return 1;
-                if (segment1.max.y() < segment2.max.y()) return -1;
-                if (segment1.max.y() > segment2.max.y()) return 1;
-
-                return 0;
-            }
-        }
-    }
-
 }
