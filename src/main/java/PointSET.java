@@ -6,6 +6,7 @@
  *  Represents points in the unit square using a balanced red-black tree.
  *
  ******************************************************************************/
+
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 
@@ -14,17 +15,17 @@ import java.util.List;
 import java.util.TreeSet;
 
 public class PointSET {
-    private TreeSet<Point2D> points = new TreeSet<>();
+    private final TreeSet<Point2D> points = new TreeSet<>();
 
-    public boolean isEmpty(){
-        return points.size() == 0;
+    public boolean isEmpty() {
+        return points.isEmpty();
     }
 
-    public int size(){
+    public int size() {
         return points.size();
     }
 
-    public void insert(Point2D point){
+    public void insert(Point2D point) {
         checkPointIsNotNull(point);
         checkPointIsInUnitSquare(point);
         points.add(point);
@@ -35,9 +36,11 @@ public class PointSET {
         return points.contains(point);
     }
 
-    /** Draws the points in the set to {@link edu.princeton.cs.algs4.StdDraw} */
-    public void draw(){
-        for(Point2D point : points){
+    /**
+     * Draws the points in the set to {@link edu.princeton.cs.algs4.StdDraw}
+     */
+    public void draw() {
+        for (Point2D point : points) {
             point.draw();
         }
     }
@@ -50,13 +53,13 @@ public class PointSET {
      * @return All points within or on the boundary of the rectangle
      * @throws IllegalArgumentException if the rectangle is null
      */
-    public Iterable<Point2D> range(RectHV rect){
+    public Iterable<Point2D> range(RectHV rect) {
         if (rect == null) {
             throw new IllegalArgumentException("Null rectangle");
         }
 
         List<Point2D> out = new ArrayList<>();
-        for(Point2D point : points) {
+        for (Point2D point : points) {
             // Quit early if search goes past the farthest point in the
             // rectangle
             if (point.y() > rect.ymax()) break;
@@ -77,7 +80,7 @@ public class PointSET {
      * @param point A query point within the unit square
      * @return The closest point to the query point, or null
      */
-    public Point2D nearest(Point2D point){
+    public Point2D nearest(Point2D point) {
         checkPointIsNotNull(point);
         if (isEmpty()) return null;
         if (points.contains(point)) return point;
@@ -89,7 +92,7 @@ public class PointSET {
         // Iterate via natural order
         // Since we process smaller points first, lesser points will
         // hold the tie breaker
-        for (Point2D current : points){
+        for (Point2D current : points) {
             double distance = point.distanceSquaredTo(current);
             if (distance < closestDistance) {
                 closestPoint = current;
@@ -103,14 +106,14 @@ public class PointSET {
         // Since the points are sorted first by y-coord, then x-coord
     }
 
-    private void checkPointIsNotNull(Point2D point){
+    private void checkPointIsNotNull(Point2D point) {
         if (point == null) {
             throw new IllegalArgumentException("Null point");
         }
     }
 
-    private void checkPointIsInUnitSquare(Point2D point){
-        if (point.x() < 0.0 || point.x() > 1.0 || point.y() < 0.0 || point.y() > 1.0){
+    private void checkPointIsInUnitSquare(Point2D point) {
+        if (point.x() < 0.0 || point.x() > 1.0 || point.y() < 0.0 || point.y() > 1.0) {
             throw new IllegalArgumentException("Point not inside unit square");
         }
     }
