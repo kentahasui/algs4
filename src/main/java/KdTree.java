@@ -8,14 +8,13 @@
  *  This class is implemented using a 2-dimensional tree.
  *
  ******************************************************************************/
-
-import edu.princeton.cs.algs4.LinkedStack;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.LinkedStack;
+import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.StdDraw;
 
 import java.util.ArrayList;
-import java.util.TreeSet;
 import java.util.List;
 
 public class KdTree {
@@ -57,28 +56,28 @@ public class KdTree {
      * @param currentNode The current node being processed.
      * @param dimension   X or Y. Even-level nodes use the X dimension, and
      *                    odd-level nodes use Y as the dimension.
-     * @param parents     A list of nodes from current.parent to the root
+     * @param ancestors     A list of nodes from current.parent to the root
      *
      * @return The current node being processed. If a new node is created
      * (insert into leaf), returns a new node.
      */
-    private Node insert(Point2D point, Node currentNode, Dimension dimension, LinkedStack<Node> parents) {
+    private Node insert(Point2D point, Node currentNode, Dimension dimension, LinkedStack<Node> ancestors) {
         // Base case: Insert into root or leaf
         if (currentNode == null) {
             size++;
-            return new Node(point, dimension, parents);
+            return new Node(point, dimension, ancestors);
         }
 
         // Recursive case: Keep searching
-        parents.push(currentNode);
+        ancestors.push(currentNode);
 
         // Point's key is less than current node: insert into LEFT subtree
         if (currentNode.pointInLeftSubtree(point)) {
-            currentNode.left = insert(point, currentNode.left, dimension.next(), parents);
+            currentNode.left = insert(point, currentNode.left, dimension.next(), ancestors);
         }
         // Point's key is greater than current node: insert into RIGHT subtree
         else if (currentNode.pointInRightSubtree(point)) {
-            currentNode.right = insert(point, currentNode.right, dimension.next(), parents);
+            currentNode.right = insert(point, currentNode.right, dimension.next(), ancestors);
         }
         // Point's key is equal to current node and point is not already in set:
         // Add point to current node
@@ -194,31 +193,40 @@ public class KdTree {
         // Base case: we hit a leaf. Do nothing.
         if (node == null) return;
 
+        // Cache old closest distance for pruning
+        double oldClosestDistance = closestDistance;
+
+//        System.out.printf("\nProcessing points %s\n", node.points);
+//        System.out.printf("Rectangle: (%s, %s) (%s, %s)\n", node.xmin, node.ymin, node.xmax, node.ymax);
+//        System.out.printf("Closest so far: %s [distance = %s]\n", closestPoint, closestDistance);
+
+
+        /*
+         * Pruning case: If all points along the segment are farther than the
+         * closest point so far, only check the closest subtree
+         */
+        double distanceToRect = node.rectDistanceSquaredTo(queryPoint);
+        if (distanceToRect > oldClosestDistance) {
+//            System.out.println("Distance is farther than closest distance! Pruning subtree not containing point");
+            nearest(queryPoint, node.subtreeContainingPoint(queryPoint));
+            return;
+        }
+
         /*
          * Calculate the closest point in the node
          */
         for (Point2D point : node.points) {
             double distance = point.distanceSquaredTo(queryPoint);
             if (distance < closestDistance) {
+//                System.out.printf("    Found new closest point: %s [distance=%s]\n", point, distance);
                 closestDistance = distance;
                 closestPoint = point;
             }
         }
 
-        /*
-         * Pruning case: If all points along the segment are farther than the
-         * closest point so far, only check the closest subtree
-         */
-        double distanceToRect = node.rect.distanceSquaredTo(queryPoint);
-        if (distanceToRect > closestDistance) {
-            nearest(queryPoint, node.subtreeContainingPoint(queryPoint));
-        }
-
-        // Otherwise we must check other points
-        else {
-            nearest(queryPoint, node.subtreeContainingPoint(queryPoint));
-            nearest(queryPoint, node.subtreeNotContainingPoint(queryPoint));
-        }
+        // Otherwise we must check other point
+        nearest(queryPoint, node.subtreeContainingPoint(queryPoint));
+        nearest(queryPoint, node.subtreeNotContainingPoint(queryPoint));
     }
 
     private void checkPointIsNotNull(Point2D point) {
@@ -255,21 +263,28 @@ public class KdTree {
      * Each node uses a point's dimension (x or y) when comparing with other points.
      * Each node can have one or more points within.
      */
-    private class Node {
+    private static class Node {
         // Key of the node
         private final double key;
         private final Dimension dimension;
-        private final TreeSet<Point2D> points;
-        private final RectHV rect;
+        private final SET<Point2D> points;
+
+        // Rectangle
+        private double xmin = -1;
+        private double xmax = -1;
+        private double ymin = -1;
+        private double ymax = -1;
+
+        // Left/bottom and right/top subtrees
         private Node left;
         private Node right;
 
-        private Node(Point2D point, Dimension dimension, LinkedStack<Node> parents) {
-            this.points = new TreeSet<>();
+        private Node(Point2D point, Dimension dimension, LinkedStack<Node> ancestors) {
+            this.points = new SET<>();
             this.points.add(point);
             this.dimension = dimension;
             this.key = dimension.getKey(point);
-            this.rect = initializeRect(point, parents);
+            initializeRect(point, ancestors);
         }
 
         private void draw() {
@@ -282,43 +297,53 @@ public class KdTree {
             dimension.drawSegment(this);
         }
 
+        /**
+         * Distance from the closest point in this rectangle to the given point.
+         * Uses squared distance to avoid null distances.
+         */
+        private double rectDistanceSquaredTo(Point2D p) {
+            double dx = 0.0, dy = 0.0;
+            if      (p.x() < xmin) dx = p.x() - xmin;
+            else if (p.x() > xmax) dx = p.x() - xmax;
+            if      (p.y() < ymin) dy = p.y() - ymin;
+            else if (p.y() > ymax) dy = p.y() - ymax;
+            return dx*dx + dy*dy;
+        }
+
 
         /**
          * Constructs the rectangle associated with this Node.
          *
          * @param point   A point in this node
-         * @param parents All parents from this node up to the root
-         * @return A rectangle
+         * @param ancestors All parents from this node up to the root
          */
-        private RectHV initializeRect(Point2D point, LinkedStack<Node> parents) {
+        private void initializeRect(Point2D point, LinkedStack<Node> ancestors) {
             // Corner case: root node.
             // Draw a vertical line at x = key
             // Splits the unit square in half at the specified x coordinate
-            if (parents.isEmpty()) {
-                return new RectHV(0.0, 0.0, key, 1.0);
+            if (ancestors.isEmpty()) {
+                xmin = 0.0;
+                ymin = 0.0;
+                xmax = key;
+                ymax = 1.0;
+                return;
             }
 
-            Node directParent = parents.peek();
-            RectHV parentRect = directParent.rect;
-            double xmin;
-            double ymin;
-            double xmax = -1;
-            double ymax = -1;
-
+            Node parent = ancestors.peek();
             if (dimension == Dimension.X) {
-                xmin = parentRect.xmin();
+                xmin = parent.xmin;
                 xmax = key;
                 // Current point is part of left subtree
-                if (directParent.pointInLeftSubtree(point)) {
-                    ymin = parentRect.ymin();
-                    ymax = parentRect.ymax();
+                if (parent.pointInLeftSubtree(point)) {
+                    ymin = parent.ymin;
+                    ymax = parent.ymax;
                 }
                 // Right subtree
                 else {
-                    ymin = parentRect.ymax();
-                    for (Node parent : parents) {
-                        if (point.y() < parent.rect.ymax()) {
-                            ymax = parent.rect.ymax();
+                    ymin = parent.ymax;
+                    for (Node ancestor : ancestors) {
+                        if (point.y() < ancestor.ymax) {
+                            ymax = ancestor.ymax;
                             break;
                         }
                     }
@@ -326,24 +351,24 @@ public class KdTree {
                 }
             }
             else {
-                ymin = parentRect.ymin();
+                ymin = parent.ymin;
                 ymax = key;
                 // left subtree
-                if (point.x() < parentRect.xmax()) {
-                    xmin = parentRect.xmin();
-                    xmax = parentRect.xmax();
+                if (point.x() < parent.xmax) {
+                    xmin = parent.xmin;
+                    xmax = parent.xmax;
                 }
                 // right subtree
                 else {
                     // All x coordinates in right subtree are
                     // greater than all x coordinates in right subtree
-                    xmin = parentRect.xmax();
+                    xmin = parent.xmax;
 
                     // This line segment will continue until we
                     // reach a parent on the right-hand side
-                    for (Node parent : parents) {
-                        if (point.x() < parent.rect.xmax()) {
-                            xmax = parent.rect.xmax();
+                    for (Node ancestor : ancestors) {
+                        if (point.x() < ancestor.xmax) {
+                            xmax = ancestor.xmax;
                             break;
                         }
                     }
@@ -352,7 +377,6 @@ public class KdTree {
                     if (xmax < 0) xmax = 1.0;
                 }
             }
-            return new RectHV(xmin, ymin, xmax, ymax);
         }
 
         private Node subtreeContainingPoint(Point2D otherPoint) {
@@ -414,8 +438,8 @@ public class KdTree {
             @Override
             public void drawSegment(Node node) {
                 StdDraw.setPenColor(StdDraw.RED);
-                Point2D p = new Point2D(node.key, node.rect.ymin());
-                Point2D q = new Point2D(node.key, node.rect.ymax());
+                Point2D p = new Point2D(node.key, node.ymin);
+                Point2D q = new Point2D(node.key, node.ymax);
                 p.drawTo(q);
             }
         },
@@ -443,8 +467,8 @@ public class KdTree {
             @Override
             public void drawSegment(Node node) {
                 StdDraw.setPenColor(StdDraw.BLUE);
-                Point2D p = new Point2D(node.rect.xmin(), node.key);
-                Point2D q = new Point2D(node.rect.xmax(), node.key);
+                Point2D p = new Point2D(node.xmin, node.key);
+                Point2D q = new Point2D(node.xmax, node.key);
                 p.drawTo(q);
                 StdDraw.setPenColor();
             }

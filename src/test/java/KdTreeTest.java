@@ -377,14 +377,53 @@ public class KdTreeTest {
         tree.insert(new Point2D(0.150, 0.150));
         tree.insert(new Point2D(0.100, 0.500));
         tree.insert(new Point2D(0.400, 0.700));
-
-        System.out.printf("%s -> query: %s\n", p1, p1.distanceSquaredTo(query));
-        System.out.printf("%s -> query: %s\n", p2, p2.distanceSquaredTo(query));
-        System.out.println();
-        System.out.println(tree.nearest(query));
-
         assertThat(tree.nearest(query)).isEqualTo(
                 new Point2D(0.100, 0.500));
     }
+
+    @Test
+    public void nearestNeighbor_iterationOrder_6b(){
+        /*
+          A  0.0 0.25
+          B  0.125 0.5
+          C  0.5 0.375
+          D  0.625 0.0
+          E  0.375 1.0
+         */
+        KdTree tree = new KdTree();
+        Point2D query = new Point2D(0.875, 0.75);
+        tree.insert(new Point2D(0.0, 0.25));
+        tree.insert(new Point2D(0.125, 0.5));
+        tree.insert(new Point2D(0.5, 0.375));
+        tree.insert(new Point2D(0.625, 0.0));
+        tree.insert(new Point2D(0.375, 1.0));
+
+        Point2D nearest = tree.nearest(query);
+        assertThat(nearest).isEqualTo(new Point2D(0.5, 0.375));
+
+    }
+
+    @Test
+    public void nearestNeighbor_iterationOrder_6a(){
+        /*
+          A  0.7 0.2
+          B  0.5 0.4
+          C  0.2 0.3
+          D  0.4 0.7
+          E  0.9 0.6
+         */
+        KdTree tree = new KdTree();
+        Point2D query = new Point2D(0.98, 0.91);
+        tree.insert(new Point2D(0.7, 0.2));
+        tree.insert(new Point2D(0.5, 0.4));
+        tree.insert(new Point2D(0.2, 0.3));
+        tree.insert(new Point2D(0.4, 0.7));
+        tree.insert(new Point2D(0.9, 0.6));
+
+        Point2D nearest = tree.nearest(query);
+        assertThat(nearest).isEqualTo(new Point2D(0.9, 0.6));
+
+    }
+
 }
 
