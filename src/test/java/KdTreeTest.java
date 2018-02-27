@@ -77,14 +77,14 @@ public class KdTreeTest {
     }
 
     @Test
-    public void insertIntoEmptytree_addsNewPoint(){
+    public void insertIntoEmptyTree_addsNewPoint(){
         KdTree tree = new KdTree();
         tree.insert(new Point2D(0.1, 0.2));
         assertThat(tree.contains(new Point2D(0.1, 0.2))).isTrue();
     }
 
     @Test
-    public void insertIntotree_addsNewPoint(){
+    public void insertIntoTree_addsNewPoint(){
         KdTree tree = new KdTree();
         tree.insert(new Point2D(0.1, 0.2));
         assertThat(tree.contains(new Point2D(0.3, 0.4))).isFalse();
@@ -250,7 +250,7 @@ public class KdTreeTest {
     }
 
     @Test
-    public void nearestNeighborOftreeWithOnePoint_shouldBeTheOnlyPoint(){
+    public void nearestNeighborOfTreeWithOnePoint_shouldBeTheOnlyPoint(){
         KdTree tree = new KdTree();
         Point2D point = new Point2D(1.0, 1.0);
         tree.insert(new Point2D(0.0, 0.0));

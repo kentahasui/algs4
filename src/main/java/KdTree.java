@@ -8,14 +8,15 @@
  *  This class is implemented using a 2-dimensional tree.
  *
  ******************************************************************************/
+
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.LinkedStack;
-import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.StdDraw;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class KdTree {
     // Number of points in set (NOT the number of nodes in set)
@@ -46,49 +47,46 @@ public class KdTree {
     public void insert(Point2D point) {
         checkPointIsNotNull(point);
         checkPointIsInUnitSquare(point);
-        root = insert(point, root, Dimension.X, new LinkedStack<>());
+        root = insert(point, root, new LinkedStack<>(), true);
     }
 
     /**
      * Recursive helper method to insert a point.
      *
-     * @param point       The point to insert.
-     * @param currentNode The current node being processed.
-     * @param dimension   X or Y. Even-level nodes use the X dimension, and
-     *                    odd-level nodes use Y as the dimension.
-     * @param ancestors     A list of nodes from current.parent to the root
-     *
+     * @param point      The point to insert.
+     * @param node       The current node being processed.
+     * @param ancestors  A list of nodes from current.parent to the root
+     * @param isVertical True for vertical lines (key = point.x(): even-level node).
+     *                   False otherwise.
      * @return The current node being processed. If a new node is created
      * (insert into leaf), returns a new node.
      */
-    private Node insert(Point2D point, Node currentNode, Dimension dimension, LinkedStack<Node> ancestors) {
-        // Base case: Insert into root or leaf
-        if (currentNode == null) {
+    private Node insert(Point2D point, Node node, LinkedStack<Node> ancestors, boolean isVertical) {
+        if (node == null) {
             size++;
-            return new Node(point, dimension, ancestors);
+            return new Node(point, ancestors, isVertical);
         }
 
         // Recursive case: Keep searching
-        ancestors.push(currentNode);
+        ancestors.push(node);
 
         // Point's key is less than current node: insert into LEFT subtree
-        if (currentNode.pointInLeftSubtree(point)) {
-            currentNode.left = insert(point, currentNode.left, dimension.next(), ancestors);
+        if (node.inLeftSubtree(point)) {
+            node.left = insert(point, node.left, ancestors, !isVertical);
         }
-        // Point's key is greater than current node: insert into RIGHT subtree
-        else if (currentNode.pointInRightSubtree(point)) {
-            currentNode.right = insert(point, currentNode.right, dimension.next(), ancestors);
+        // Point's key is greater than node: insert into RIGHT subtree
+        else if (node.inRightSubtree(point)) {
+            node.right = insert(point, node.right, ancestors, !isVertical);
         }
         // Point's key is equal to current node and point is not already in set:
         // Add point to current node
-        // Does nothing if set already contains the point
-        else if (!currentNode.points.contains(point)) {
+        else if (!node.contains(point)) {
             size++;
-            currentNode.points.add(point);
+            node.add(point);
         }
 
         // Return current node to avoid maintaining reference to parent
-        return currentNode;
+        return node;
     }
 
     /**
@@ -112,20 +110,14 @@ public class KdTree {
         if (currentNode == null) return false;
 
         // Base case 2: Found key in the tree.
-        // If this node contains the point, then the tree contains the point
-        // Otherwise the tree does NOT contain the point.
-        // This is the only node that can contain this point, as the keys
-        // are equivalent
-        if (currentNode.hasSameKey(point)) {
-            return currentNode.points.contains(point);
-        }
+        if (currentNode.contains(point)) return true;
 
-        // Recursive case 1: Point will be in left subtree
-        else if (currentNode.pointInLeftSubtree(point)) {
+            // Recursive case 1: , point will be in left subtree
+        else if (currentNode.inLeftSubtree(point)) {
             return contains(point, currentNode.left);
         }
 
-        // Recursive case 2: Point will be in right subtree
+        // Recursive case 2: If in tree, point will be in right subtree
         else {
             return contains(point, currentNode.right);
         }
@@ -162,7 +154,7 @@ public class KdTree {
         }
 
         // Add all points contained within the rectangle
-        for (Point2D point : currentNode.points) {
+        for (Point2D point : currentNode.getPoints()) {
             if (rect.contains(point)) out.add(point);
         }
 
@@ -193,40 +185,23 @@ public class KdTree {
         // Base case: we hit a leaf. Do nothing.
         if (node == null) return;
 
-        // Cache old closest distance for pruning
-        double oldClosestDistance = closestDistance;
-
-//        System.out.printf("\nProcessing points %s\n", node.points);
-//        System.out.printf("Rectangle: (%s, %s) (%s, %s)\n", node.xmin, node.ymin, node.xmax, node.ymax);
-//        System.out.printf("Closest so far: %s [distance = %s]\n", closestPoint, closestDistance);
-
-
-        /*
-         * Pruning case: If all points along the segment are farther than the
-         * closest point so far, only check the closest subtree
-         */
-        double distanceToRect = node.rectDistanceSquaredTo(queryPoint);
-        if (distanceToRect > oldClosestDistance) {
-//            System.out.println("Distance is farther than closest distance! Pruning subtree not containing point");
-            nearest(queryPoint, node.subtreeContainingPoint(queryPoint));
-            return;
-        }
-
-        /*
-         * Calculate the closest point in the node
-         */
-        for (Point2D point : node.points) {
+        // Find closest point so far
+        for (Point2D point : node.getPoints()) {
             double distance = point.distanceSquaredTo(queryPoint);
             if (distance < closestDistance) {
-//                System.out.printf("    Found new closest point: %s [distance=%s]\n", point, distance);
                 closestDistance = distance;
                 closestPoint = point;
             }
         }
 
-        // Otherwise we must check other point
+        // Always go down side of dividing line with point
         nearest(queryPoint, node.subtreeContainingPoint(queryPoint));
-        nearest(queryPoint, node.subtreeNotContainingPoint(queryPoint));
+
+        // Prune
+        double distanceToRect = node.distanceSquaredToClosestPointInSegment(queryPoint);
+        if (distanceToRect < closestDistance) {
+            nearest(queryPoint, node.subtreeNotContainingPoint(queryPoint));
+        }
     }
 
     private void checkPointIsNotNull(Point2D point) {
@@ -264,234 +239,215 @@ public class KdTree {
      * Each node can have one or more points within.
      */
     private static class Node {
+        private final boolean isVertical;
+
         // Key of the node
         private final double key;
-        private final Dimension dimension;
-        private final SET<Point2D> points;
+        private final List<Double> coords;
 
-        // Rectangle
-        private double xmin = -1;
-        private double xmax = -1;
-        private double ymin = -1;
-        private double ymax = -1;
+        // Line segment associated with this node.
+        // Y coordinates for vertical nodes. X coordinates for horizontal.
+        private double segmentMin = -1;
+        private double segmentMax = -1;
 
         // Left/bottom and right/top subtrees
         private Node left;
         private Node right;
 
-        private Node(Point2D point, Dimension dimension, LinkedStack<Node> ancestors) {
-            this.points = new SET<>();
-            this.points.add(point);
-            this.dimension = dimension;
-            this.key = dimension.getKey(point);
-            initializeRect(point, ancestors);
+        private Node(Point2D point, LinkedStack<Node> ancestors, boolean isVertical) {
+            this.coords = new ArrayList<>(1);
+            this.isVertical = isVertical;
+            this.key = getKey(point);
+            initializeSegment(point, ancestors);
+            add(point);
+        }
+
+        public String toString() {
+            return String.format("{Key: %s | points: %s | isVertical: %s}", key, getPoints(), isVertical);
+        }
+
+        /**
+         * Add a new point to this node
+         */
+        private void add(Point2D point) {
+            double nonKey = isVertical ? point.y() : point.x();
+            coords.add(nonKey);
+        }
+
+        /**
+         * True iff this node already contains the query point
+         */
+        private boolean contains(Point2D point) {
+            double otherKey = getKey(point);
+            if (Double.compare(key, otherKey) != 0) return false;
+            if (isVertical) return coords.contains(point.y());
+            else return coords.contains(point.x());
+        }
+
+        /**
+         * X coordinate for vertical nodes. Y coordinate for horizontal.
+         */
+        private double getKey(Point2D point) {
+            return isVertical ? point.x() : point.y();
+        }
+
+        private boolean inLeftSubtree(Point2D queryPoint) {
+            return getKey(queryPoint) < key;
+        }
+
+        private boolean inRightSubtree(Point2D queryPoint) {
+            return getKey(queryPoint) > key;
+        }
+
+        private Node subtreeContainingPoint(Point2D otherPoint) {
+            return inLeftSubtree(otherPoint) ? left : right;
+        }
+
+        private Node subtreeNotContainingPoint(Point2D otherPoint) {
+            return inLeftSubtree(otherPoint) ? right : left;
+        }
+
+        private boolean rectangleInLeftSubtree(RectHV queryRect) {
+            double rectMin = isVertical ? queryRect.xmin() : queryRect.ymin();
+            return key > rectMin;
+        }
+
+        private boolean rectangleInRightSubtree(RectHV queryRect) {
+            double rectMax = isVertical ? queryRect.xmax() : queryRect.ymax();
+            return key < rectMax;
         }
 
         private void draw() {
             StdDraw.setPenRadius(0.01);
             StdDraw.setPenColor(StdDraw.BLACK);
-            for (Point2D point : points) {
+            for (Point2D point : getPoints()) {
                 point.draw();
             }
             StdDraw.setPenRadius();
-            dimension.drawSegment(this);
+            drawSegment();
+        }
+
+        private void drawSegment() {
+            Point2D p;
+            Point2D q;
+            if (isVertical) {
+                StdDraw.setPenColor(StdDraw.RED);
+                p = new Point2D(key, segmentMin);
+                q = new Point2D(key, segmentMax);
+
+            } else {
+                StdDraw.setPenColor(StdDraw.BLUE);
+                p = new Point2D(segmentMin, key);
+                q = new Point2D(segmentMax, key);
+            }
+            p.drawTo(q);
+            StdDraw.setPenColor();
         }
 
         /**
-         * Distance from the closest point in this rectangle to the given point.
+         * Distance from the closest point in this line segment to the given point.
          * Uses squared distance to avoid null distances.
          */
-        private double rectDistanceSquaredTo(Point2D p) {
-            double dx = 0.0, dy = 0.0;
-            if      (p.x() < xmin) dx = p.x() - xmin;
-            else if (p.x() > xmax) dx = p.x() - xmax;
-            if      (p.y() < ymin) dy = p.y() - ymin;
-            else if (p.y() > ymax) dy = p.y() - ymax;
-            return dx*dx + dy*dy;
+        private double distanceSquaredToClosestPointInSegment(Point2D p) {
+            double x = p.x();
+            double y = p.y();
+            double closestX, closestY;
+            if (isVertical) {
+                // Vertical lines have exactly one x coordinate
+                closestX = key;
+                // query point is under the lower endpoint. Lower endpoint is the closest we get
+                if (y < segmentMin) closestY = segmentMin;
+                    // Query point is over the higher endpoint. Higher endpoint is the closest we get
+                else if (y > segmentMax) closestY = segmentMax;
+                    // Query point is contained within the line segment. The closest y coordinate is the query point's y coordinate
+                else closestY = y;
+            } else {
+                closestY = key;
+                if (x < segmentMin) closestX = segmentMin;
+                else if (x > segmentMax) closestX = segmentMax;
+                else closestX = x;
+            }
+            double dx = x - closestX;
+            double dy = y - closestY;
+            return dx * dx + dy * dy;
         }
-
 
         /**
-         * Constructs the rectangle associated with this Node.
+         * Gets all points stored in this node
+         */
+        private Iterable<Point2D> getPoints() {
+            List<Point2D> out = new ArrayList<>();
+            for (double coord : coords) {
+                if (isVertical) out.add(new Point2D(key, coord));
+                else out.add(new Point2D(coord, key));
+            }
+            return out;
+        }
+
+        /**
+         * Constructs the Line Segment associated with this node.
          *
-         * @param point   A point in this node
+         * @param point     A point in this node
          * @param ancestors All parents from this node up to the root
          */
-        private void initializeRect(Point2D point, LinkedStack<Node> ancestors) {
-            // Corner case: root node.
-            // Draw a vertical line at x = key
-            // Splits the unit square in half at the specified x coordinate
-            if (ancestors.isEmpty()) {
-                xmin = 0.0;
-                ymin = 0.0;
-                xmax = key;
-                ymax = 1.0;
-                return;
-            }
+        private void initializeSegment(Point2D point, LinkedStack<Node> ancestors) {
+            double x = point.x();
+            double y = point.y();
 
-            Node parent = ancestors.peek();
-            if (dimension == Dimension.X) {
-                xmin = parent.xmin;
-                xmax = key;
-                // Current point is part of left subtree
-                if (parent.pointInLeftSubtree(point)) {
-                    ymin = parent.ymin;
-                    ymax = parent.ymax;
-                }
-                // Right subtree
-                else {
-                    ymin = parent.ymax;
-                    for (Node ancestor : ancestors) {
-                        if (point.y() < ancestor.ymax) {
-                            ymax = ancestor.ymax;
-                            break;
-                        }
+            findSegmentMin(x, y, ancestors);
+            findSegmentMax(x, y, ancestors);
+
+            // No points found: segments extend to edges of unit square
+            if (segmentMin < 0) segmentMin = 0.0;
+            if (segmentMax < 0) segmentMax = 1.0;
+        }
+
+        private void findSegmentMin(double x, double y, LinkedStack<Node> ancestors) {
+            if (isVertical) {
+                for (Node ancestor : ancestors) {
+                    // Ignore vertical lines
+                    if (ancestor.isVertical) continue;
+                    // Find highest horizontal line below this point
+                    if (ancestor.key < y) {
+                        segmentMin = ancestor.key;
+                        break;
                     }
-                    if (ymax < 0) ymax = 1.0;
                 }
-            }
-            else {
-                ymin = parent.ymin;
-                ymax = key;
-                // left subtree
-                if (point.x() < parent.xmax) {
-                    xmin = parent.xmin;
-                    xmax = parent.xmax;
-                }
-                // right subtree
-                else {
-                    // All x coordinates in right subtree are
-                    // greater than all x coordinates in right subtree
-                    xmin = parent.xmax;
-
-                    // This line segment will continue until we
-                    // reach a parent on the right-hand side
-                    for (Node ancestor : ancestors) {
-                        if (point.x() < ancestor.xmax) {
-                            xmax = ancestor.xmax;
-                            break;
-                        }
+            } else {
+                for (Node ancestor : ancestors) {
+                    // Ignore horizontal lines
+                    if (!ancestor.isVertical) continue;
+                    // Find first vertical line to the left of this point
+                    if (ancestor.key < x) {
+                        segmentMin = ancestor.key;
+                        break;
                     }
-                    // If there are no such parents, draw the line to
-                    // the edge of the unit square
-                    if (xmax < 0) xmax = 1.0;
                 }
             }
         }
 
-        private Node subtreeContainingPoint(Point2D otherPoint) {
-            return pointInLeftSubtree(otherPoint) ? left : right;
-        }
-
-        private Node subtreeNotContainingPoint(Point2D otherPoint) {
-            return pointInLeftSubtree(otherPoint) ? right : left;
-        }
-
-        private boolean hasSameKey(Point2D queryPoint) {
-            return Double.compare(key, dimension.getKey(queryPoint)) == 0;
-        }
-
-        private boolean pointInLeftSubtree(Point2D queryPoint) {
-            return key > dimension.getKey(queryPoint);
-        }
-
-        private boolean pointInRightSubtree(Point2D queryPoint) {
-            return key < dimension.getKey(queryPoint);
-        }
-
-        private boolean rectangleInLeftSubtree(RectHV queryRect) {
-            return key > dimension.getMin(queryRect);
-        }
-
-        private boolean rectangleInRightSubtree(RectHV queryRect) {
-            return key < dimension.getMax(queryRect);
-        }
-    }
-
-    /**
-     * Nested helper enum.
-     * Represents dimension of a given node.
-     * Simplifies math logic.
-     */
-    private enum Dimension {
-        X {
-            @Override
-            public Dimension next() {
-                return Y;
+        private void findSegmentMax(double x, double y, LinkedStack<Node> ancestors) {
+            if (isVertical) {
+                for (Node ancestor : ancestors) {
+                    // Skip vertical lines
+                    if (ancestor.isVertical) continue;
+                    // Find first horizontal line to the above this point
+                    if (ancestor.key > y) {
+                        segmentMax = ancestor.key;
+                        break;
+                    }
+                }
+            } else {
+                for (Node ancestor : ancestors) {
+                    // Skip horizontal lines
+                    if (!ancestor.isVertical) continue;
+                    // Find first vertical line to the right of point
+                    if (ancestor.key > x) {
+                        segmentMax = ancestor.key;
+                        break;
+                    }
+                }
             }
-
-            @Override
-            public double getKey(Point2D point) {
-                return point.x();
-            }
-
-            @Override
-            public double getMin(RectHV rect) {
-                return rect.xmin();
-            }
-
-            @Override
-            public double getMax(RectHV rect) {
-                return rect.xmax();
-            }
-
-            @Override
-            public void drawSegment(Node node) {
-                StdDraw.setPenColor(StdDraw.RED);
-                Point2D p = new Point2D(node.key, node.ymin);
-                Point2D q = new Point2D(node.key, node.ymax);
-                p.drawTo(q);
-            }
-        },
-        Y {
-            @Override
-            public Dimension next() {
-                return X;
-            }
-
-            @Override
-            public double getKey(Point2D point) {
-                return point.y();
-            }
-
-            @Override
-            public double getMin(RectHV rect) {
-                return rect.ymin();
-            }
-
-            @Override
-            public double getMax(RectHV rect) {
-                return rect.ymax();
-            }
-
-            @Override
-            public void drawSegment(Node node) {
-                StdDraw.setPenColor(StdDraw.BLUE);
-                Point2D p = new Point2D(node.xmin, node.key);
-                Point2D q = new Point2D(node.xmax, node.key);
-                p.drawTo(q);
-                StdDraw.setPenColor();
-            }
-        };
-
-        public Dimension next() {
-            return null;
-        }
-
-        public double getKey(Point2D point) {
-            return -1;
-        }
-
-        public double getMin(RectHV rect) {
-            return -1;
-        }
-
-        public double getMax(RectHV rect) {
-            return -1;
-        }
-
-        public void drawSegment(Node node) {
-            // Do nothing
         }
     }
 }
