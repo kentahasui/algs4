@@ -70,11 +70,11 @@ public class KdTreeTest {
         tree.insert(null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void insertPointNotInUnitSquare_shouldThrowException(){
-        KdTree tree = new KdTree();
-        tree.insert(new Point2D(2, 2));
-    }
+//    @Test(expected = IllegalArgumentException.class)
+//    public void insertPointNotInUnitSquare_shouldThrowException(){
+//        KdTree tree = new KdTree();
+//        tree.insert(new Point2D(2, 2));
+//    }
 
     @Test
     public void insertIntoEmptyTree_addsNewPoint(){
