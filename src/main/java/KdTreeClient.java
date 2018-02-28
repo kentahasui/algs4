@@ -27,6 +27,7 @@ public class KdTreeClient {
         int count = 0;
         int duration = 10;
         Point2D query = new Point2D(0.3, 0.6);
+//        Point2D query = new Point2D(0.843, 0.975);
         Stopwatch stopwatch = Stopwatch.createStarted();
         while (stopwatch.elapsed().getSeconds() < duration) {
             kdtree.nearest(query);
@@ -35,17 +36,5 @@ public class KdTreeClient {
         System.out.printf("%s nearest operations in %s seconds\n", count, duration);
         System.out.printf("%s nearest operations per second\n", count / duration);
         System.out.printf("tree.nearest((0.3, 0.6)) => %s\n\n", kdtree.nearest(query));
-
-
-//        System.out.println("Calculating nearest for Brute");
-//        count = 0;
-//        stopwatch = Stopwatch.createStarted();
-//        while(stopwatch.elapsed().getSeconds() < duration){
-//            brute.nearest(query);
-//            count++;
-//        }
-//        System.out.printf("%s nearest operations in %s seconds\n", count, duration);
-//        System.out.printf("%s nearest operations per second\n", count/duration);
-//        System.out.printf("tree.nearest((0.3, 0.6)) => %s\n", brute.nearest(query));
     }
 }

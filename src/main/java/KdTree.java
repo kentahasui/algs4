@@ -11,7 +11,6 @@
 
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
-import edu.princeton.cs.algs4.ResizingArrayStack;
 import edu.princeton.cs.algs4.StdDraw;
 
 import java.util.ArrayList;
@@ -29,6 +28,14 @@ public class KdTree {
     // Closest distance and point for nearest() method
     private double closestDistance;
     private Point2D closestPoint;
+
+    // End of segments when inserting new nodes
+    private double largestXmin;
+    private double largestYmin;
+
+    private double smallestXmax;
+    private double smallestYmax;
+
 
     public boolean isEmpty() {
         return size == 0;
@@ -48,7 +55,12 @@ public class KdTree {
      */
     public void insert(Point2D point) {
         checkPointIsNotNull(point);
-        root = insert(point, root, new ResizingArrayStack<>(), new ResizingArrayStack<>(), true);
+        largestXmin = 0.0;
+        largestYmin = 0.0;
+
+        smallestXmax = 1.0;
+        smallestYmax = 1.0;
+        root = insert(point, root, true);
     }
 
     /**
@@ -56,43 +68,41 @@ public class KdTree {
      *
      * @param point      The point to insert.
      * @param node       The current node being processed.
-     * @param xAncestors A list of vertical nodes from this node to the root
-     * @param yAncestors A list of horizontal nodes from this node to the root
      * @param isVertical True for vertical lines (key = point.x(): even-level node).
      *                   False otherwise.
      *                   The root should always be vertical.
      * @return The current node being processed. If a new node is created
      * (insert into leaf), returns a new node.
      */
-    private Node insert(
-            Point2D point,
-            Node node,
-            ResizingArrayStack<Node> xAncestors,
-            ResizingArrayStack<Node> yAncestors,
-            boolean isVertical) {
-
+    private Node insert(Point2D point, Node node, boolean isVertical) {
         // Base case: At root or leaf. We did not find any node with matching key
         // Create a new Node and insert it at a leaf.
         if (node == null) {
             size++;
-            return new Node(point, xAncestors, yAncestors, isVertical);
+            return new Node(point, isVertical, largestXmin, largestYmin, smallestXmax, smallestYmax);
         }
 
-        // Recursive case: Keep searching
-        if (isVertical) {
-            xAncestors.push(node);
-        } else {
-            yAncestors.push(node);
-        }
-
+        // Recursive case: not at the leaf
         double key = node.getKey(point);
-        // Point's key is less than current node: insert into LEFT subtree
+
+        // Point's key is less than current node: insert into LEFT/BOTTOM subtree
         if (key < node.key) {
-            node.left = insert(point, node.left, xAncestors, yAncestors, !isVertical);
+            // Update right endpoint
+            if (isVertical) smallestXmax = Math.min(smallestXmax, node.key);
+            // Update top endpoint
+            else            smallestYmax = Math.min(smallestYmax, node.key);
+            // Recurse
+            node.left = insert(point, node.left, !isVertical);
         }
+
         // Point's key is greater than node: insert into RIGHT subtree
         else if (key > node.key) {
-            node.right = insert(point, node.right, xAncestors, yAncestors, !isVertical);
+            // Update left endpoint
+            if (isVertical) largestXmin = Math.max(largestXmin, node.key);
+            // Update bottom endpoint
+            else            largestYmin = Math.max(largestYmin, node.key);
+            // Recurse
+            node.right = insert(point, node.right, !isVertical);
         }
         // Point's key is equal to current node and point is not already in set:
         // Add point to current node
@@ -101,6 +111,7 @@ public class KdTree {
             node.add(point);
         }
 
+        // Return a pointer to current node, so parent can update children
         return node;
     }
 
@@ -269,8 +280,8 @@ public class KdTree {
 
         // Line segment associated with this node.
         // Y coordinates for vertical nodes. X coordinates for horizontal.
-        private double segmentMin = -1;
-        private double segmentMax = -1;
+        private final double segmentMin;
+        private final double segmentMax;
 
         // Left/bottom and right/top subtrees
         private Node left;
@@ -279,18 +290,25 @@ public class KdTree {
         /**
          * Constructor
          */
-        private Node(
-                Point2D point,
-                ResizingArrayStack<Node> xAncestors,
-                ResizingArrayStack<Node> yAncestors,
-                boolean isVertical) {
+        private Node(Point2D point,
+                     boolean isVertical,
+                     double xmin,
+                     double ymin,
+                     double xmax,
+                     double ymax) {
             this.coords = new HashSet<>(1);
             this.isVertical = isVertical;
             this.key = getKey(point);
+            if (isVertical) {
+                segmentMin = ymin;
+                segmentMax = ymax;
+            }
+            else {
+                segmentMin = xmin;
+                segmentMax = xmax;
+            }
             add(point);
-            initializeSegment(point, xAncestors, yAncestors);
         }
-
 
         /**
          * Add a new point to this node
@@ -370,56 +388,6 @@ public class KdTree {
                 else out.add(new Point2D(coord, key));
             }
             return out;
-        }
-
-        /**
-         * Constructs the Line Segment associated with this node.
-         *
-         * @param point     A point in this node
-         * @param xAncestors All vertical parents from this node up to the root
-         * @param yAncestors All horizontal parents from this node to the root
-         */
-        private void initializeSegment(
-                Point2D point,
-                ResizingArrayStack<Node> xAncestors,
-                ResizingArrayStack<Node> yAncestors) {
-            double x = point.x();
-            double y = point.y();
-            boolean foundMin = false;
-            boolean foundMax = false;
-
-            double nonKey;
-            ResizingArrayStack<Node> ancestors;
-            // If current node is vertical, the endpoints will be at neighboring horizontal lines
-            if (isVertical) {
-                nonKey = y;
-                ancestors = yAncestors;
-            }
-            // If current node is horizontal, the endpoints will be at neighboring vertical lines
-            else {
-                nonKey = x;
-                ancestors = xAncestors;
-            }
-
-            // Calculate the endpoints
-            for (Node ancestor : ancestors) {
-                // Quit early if we already found both segments
-                if (foundMin && foundMax) break;
-
-                // Find highest horizontal line below this point
-                if (!foundMin && ancestor.key < nonKey) {
-                    segmentMin = ancestor.key;
-                    foundMin = true;
-                }
-
-                if (!foundMax && ancestor.key > nonKey) {
-                    segmentMax = ancestor.key;
-                    foundMax = true;
-                }
-            }
-            // Segment extends to edges of unit square
-            if (!foundMin) segmentMin = 0.0;
-            if (!foundMax) segmentMax = 1.0;
         }
 
         private void draw() {
