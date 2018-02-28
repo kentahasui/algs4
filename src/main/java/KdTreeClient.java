@@ -8,7 +8,7 @@ public class KdTreeClient {
         // initialize the two data structures with point from file
         String filename = args[0];
         In in = new In(filename);
-        PointSET brute = new PointSET();
+//        PointSET brute = new PointSET();
         KdTree kdtree = new KdTree();
 
         Stopwatch construction = Stopwatch.createStarted();
@@ -18,7 +18,7 @@ public class KdTreeClient {
             double y = in.readDouble();
             Point2D p = new Point2D(x, y);
             kdtree.insert(p);
-            brute.insert(p);
+//            brute.insert(p);
         }
         construction.stop();
         System.out.printf("%s seconds to insert points \n\n", construction.elapsed().getSeconds());

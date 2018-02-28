@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 public class KdTree {
     // Number of points in set (NOT the number of nodes in set)
@@ -49,10 +48,22 @@ public class KdTree {
      */
     public void insert(Point2D point) {
         checkPointIsNotNull(point);
-//        root = insert(point, root, new ResizingArrayStack<>(), true);
         root = insert(point, root, new ResizingArrayStack<>(), new ResizingArrayStack<>(), true);
     }
 
+    /**
+     * Recursive helper method to insert a point.
+     *
+     * @param point      The point to insert.
+     * @param node       The current node being processed.
+     * @param xAncestors A list of vertical nodes from this node to the root
+     * @param yAncestors A list of horizontal nodes from this node to the root
+     * @param isVertical True for vertical lines (key = point.x(): even-level node).
+     *                   False otherwise.
+     *                   The root should always be vertical.
+     * @return The current node being processed. If a new node is created
+     * (insert into leaf), returns a new node.
+     */
     private Node insert(
             Point2D point,
             Node node,
@@ -92,46 +103,6 @@ public class KdTree {
 
         return node;
     }
-
-    /**
-     * Recursive helper method to insert a point.
-     *
-     * @param point      The point to insert.
-     * @param node       The current node being processed.
-     * @param ancestors  A list of nodes from current.parent to the root
-     * @param isVertical True for vertical lines (key = point.x(): even-level node).
-     *                   False otherwise.
-     * @return The current node being processed. If a new node is created
-     * (insert into leaf), returns a new node.
-     */
-//    private Node insert(Point2D point, Node node, ResizingArrayStack<Node> ancestors, boolean isVertical) {
-//        if (node == null) {
-//            size++;
-//            return new Node(point, ancestors, isVertical);
-//        }
-//
-//        // Recursive case: Keep searching
-//        ancestors.push(node);
-//
-//        double key = node.getKey(point);
-//        // Point's key is less than current node: insert into LEFT subtree
-//        if (key < node.key) {
-//            node.left = insert(point, node.left, ancestors, !isVertical);
-//        }
-//        // Point's key is greater than node: insert into RIGHT subtree
-//        else if (key > node.key) {
-//            node.right = insert(point, node.right, ancestors, !isVertical);
-//        }
-//        // Point's key is equal to current node and point is not already in set:
-//        // Add point to current node
-//        else if (!node.contains(point)) {
-//            size++;
-//            node.add(point);
-//        }
-//
-//        // Return current node to avoid maintaining reference to parent
-//        return node;
-//    }
 
     /**
      * Whether or not this tree contains the given point.
@@ -312,22 +283,14 @@ public class KdTree {
                 Point2D point,
                 ResizingArrayStack<Node> xAncestors,
                 ResizingArrayStack<Node> yAncestors,
-                boolean isVertical){
-            this.coords = new HashSet<>();
+                boolean isVertical) {
+            this.coords = new HashSet<>(1);
             this.isVertical = isVertical;
             this.key = getKey(point);
             add(point);
-            initalizeSegment(point, xAncestors, yAncestors);
+            initializeSegment(point, xAncestors, yAncestors);
         }
 
-
-//        private Node(Point2D point, ResizingArrayStack<Node> ancestors, boolean isVertical) {
-//            this.coords = new HashSet<>();
-//            this.isVertical = isVertical;
-//            this.key = getKey(point);
-//            initializeSegment(point, ancestors);
-//            add(point);
-//        }
 
         /**
          * Add a new point to this node
@@ -409,7 +372,14 @@ public class KdTree {
             return out;
         }
 
-        private void initalizeSegment(
+        /**
+         * Constructs the Line Segment associated with this node.
+         *
+         * @param point     A point in this node
+         * @param xAncestors All vertical parents from this node up to the root
+         * @param yAncestors All horizontal parents from this node to the root
+         */
+        private void initializeSegment(
                 Point2D point,
                 ResizingArrayStack<Node> xAncestors,
                 ResizingArrayStack<Node> yAncestors) {
@@ -417,28 +387,23 @@ public class KdTree {
             double y = point.y();
             boolean foundMin = false;
             boolean foundMax = false;
+
             double nonKey;
             ResizingArrayStack<Node> ancestors;
-
-            if (isVertical){
+            // If current node is vertical, the endpoints will be at neighboring horizontal lines
+            if (isVertical) {
                 nonKey = y;
                 ancestors = yAncestors;
             }
+            // If current node is horizontal, the endpoints will be at neighboring vertical lines
             else {
                 nonKey = x;
                 ancestors = xAncestors;
             }
+
+            // Calculate the endpoints
             for (Node ancestor : ancestors) {
-                // Ignore vertical lines
-                if (ancestor.isVertical && isVertical) {
-                    System.out.println("Should not happen!");
-                }
-
-                if (!ancestor.isVertical && !isVertical){
-                    System.out.println("Should also not happen!");
-                }
-
-                // Quit early
+                // Quit early if we already found both segments
                 if (foundMin && foundMax) break;
 
                 // Find highest horizontal line below this point
@@ -453,90 +418,6 @@ public class KdTree {
                 }
             }
             // Segment extends to edges of unit square
-            if (!foundMin) segmentMin = 0.0;
-            if (!foundMax) segmentMax = 1.0;
-        }
-
-        /**
-         * Constructs the Line Segment associated with this node.
-         *
-         * @param point     A point in this node
-         * @param ancestors All parents from this node up to the root
-         */
-        private void initializeSegment(Point2D point, ResizingArrayStack<Node> ancestors) {
-            double x = point.x();
-            double y = point.y();
-            boolean foundMin = false;
-            boolean foundMax = false;
-
-            /* int counter = 0;
-            double nonKey = isVertical ? y : x;
-
-            for (Node ancestor : ancestors) {
-                counter++;
-
-                // We only care about every other neighbor
-                // Vertical lines: we only care about horizontal lines for endpoints
-                // Horizontal lines: we only examine vertical lines for endpoints
-                if (counter % 2 != 0) continue;
-
-                // Quit early
-                if (foundMin && foundMax) break;
-
-                // Find first lower perpendicular line to this segment
-                if (!foundMin && ancestor.key < nonKey) {
-                    segmentMin = ancestor.key;
-                    foundMin = true;
-                }
-
-                // Find first higher perpendicular line to this segment
-                if (!foundMax && ancestor.key > nonKey) {
-                    segmentMax = ancestor.key;
-                    foundMax = true;
-                }
-            }*/
-
-            // Vertical case
-            if (isVertical) {
-                for (Node ancestor : ancestors) {
-                    // Ignore vertical lines
-                    if (ancestor.isVertical) continue;
-                    if (foundMin && foundMax) break;
-
-                    // Find highest horizontal line below this point
-                    if (!foundMin && ancestor.key < y) {
-                        segmentMin = ancestor.key;
-                        foundMin = true;
-                    }
-
-                    if (!foundMax && ancestor.key > y) {
-                        segmentMax = ancestor.key;
-                        foundMax = true;
-                    }
-                }
-            }
-            // Horizontal case
-            else {
-                for (Node ancestor : ancestors) {
-                    // Ignore horizontal lines
-                    if (!ancestor.isVertical) continue;
-                    // Quit early
-                    if (foundMin && foundMax) break;
-
-                    // Find first vertical line to the left of this point
-                    if (!foundMin && ancestor.key < x) {
-                        segmentMin = ancestor.key;
-                        foundMin = true;
-                    }
-
-                    // Find first vertical line to the right of this point
-                    if (!foundMax && ancestor.key > x) {
-                        segmentMax = ancestor.key;
-                        foundMax = true;
-                    }
-                }
-            }
-
             if (!foundMin) segmentMin = 0.0;
             if (!foundMax) segmentMax = 1.0;
         }
