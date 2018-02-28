@@ -11,14 +11,15 @@
 
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
-import edu.princeton.cs.algs4.LinkedStack;
 import edu.princeton.cs.algs4.ResizingArrayStack;
 import edu.princeton.cs.algs4.StdDraw;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 public class KdTree {
     // Number of points in set (NOT the number of nodes in set)
@@ -48,7 +49,48 @@ public class KdTree {
      */
     public void insert(Point2D point) {
         checkPointIsNotNull(point);
-        root = insert(point, root, new ResizingArrayStack<>(), true);
+//        root = insert(point, root, new ResizingArrayStack<>(), true);
+        root = insert(point, root, new ResizingArrayStack<>(), new ResizingArrayStack<>(), true);
+    }
+
+    private Node insert(
+            Point2D point,
+            Node node,
+            ResizingArrayStack<Node> xAncestors,
+            ResizingArrayStack<Node> yAncestors,
+            boolean isVertical) {
+
+        // Base case: At root or leaf. We did not find any node with matching key
+        // Create a new Node and insert it at a leaf.
+        if (node == null) {
+            size++;
+            return new Node(point, xAncestors, yAncestors, isVertical);
+        }
+
+        // Recursive case: Keep searching
+        if (isVertical) {
+            xAncestors.push(node);
+        } else {
+            yAncestors.push(node);
+        }
+
+        double key = node.getKey(point);
+        // Point's key is less than current node: insert into LEFT subtree
+        if (key < node.key) {
+            node.left = insert(point, node.left, xAncestors, yAncestors, !isVertical);
+        }
+        // Point's key is greater than node: insert into RIGHT subtree
+        else if (key > node.key) {
+            node.right = insert(point, node.right, xAncestors, yAncestors, !isVertical);
+        }
+        // Point's key is equal to current node and point is not already in set:
+        // Add point to current node
+        else if (!node.contains(point)) {
+            size++;
+            node.add(point);
+        }
+
+        return node;
     }
 
     /**
@@ -62,34 +104,34 @@ public class KdTree {
      * @return The current node being processed. If a new node is created
      * (insert into leaf), returns a new node.
      */
-    private Node insert(Point2D point, Node node, ResizingArrayStack<Node> ancestors, boolean isVertical) {
-        if (node == null) {
-            size++;
-            return new Node(point, ancestors, isVertical);
-        }
-
-        // Recursive case: Keep searching
-        ancestors.push(node);
-
-        double key = node.getKey(point);
-        // Point's key is less than current node: insert into LEFT subtree
-        if (key < node.key) {
-            node.left = insert(point, node.left, ancestors, !isVertical);
-        }
-        // Point's key is greater than node: insert into RIGHT subtree
-        else if (key > node.key) {
-            node.right = insert(point, node.right, ancestors, !isVertical);
-        }
-        // Point's key is equal to current node and point is not already in set:
-        // Add point to current node
-        else if (!node.contains(point)) {
-            size++;
-            node.add(point);
-        }
-
-        // Return current node to avoid maintaining reference to parent
-        return node;
-    }
+//    private Node insert(Point2D point, Node node, ResizingArrayStack<Node> ancestors, boolean isVertical) {
+//        if (node == null) {
+//            size++;
+//            return new Node(point, ancestors, isVertical);
+//        }
+//
+//        // Recursive case: Keep searching
+//        ancestors.push(node);
+//
+//        double key = node.getKey(point);
+//        // Point's key is less than current node: insert into LEFT subtree
+//        if (key < node.key) {
+//            node.left = insert(point, node.left, ancestors, !isVertical);
+//        }
+//        // Point's key is greater than node: insert into RIGHT subtree
+//        else if (key > node.key) {
+//            node.right = insert(point, node.right, ancestors, !isVertical);
+//        }
+//        // Point's key is equal to current node and point is not already in set:
+//        // Add point to current node
+//        else if (!node.contains(point)) {
+//            size++;
+//            node.add(point);
+//        }
+//
+//        // Return current node to avoid maintaining reference to parent
+//        return node;
+//    }
 
     /**
      * Whether or not this tree contains the given point.
@@ -266,16 +308,26 @@ public class KdTree {
         /**
          * Constructor
          */
-        private Node(Point2D point, ResizingArrayStack<Node> ancestors, boolean isVertical) {
-            this.coords = new LinkedList<>();
-//            this.coords = new TreeSet<>();
-//            this.coords = new HashSet<>();
-//            this.coords = new ArrayList<>();
+        private Node(
+                Point2D point,
+                ResizingArrayStack<Node> xAncestors,
+                ResizingArrayStack<Node> yAncestors,
+                boolean isVertical){
+            this.coords = new HashSet<>();
             this.isVertical = isVertical;
             this.key = getKey(point);
-            initializeSegment(point, ancestors);
             add(point);
+            initalizeSegment(point, xAncestors, yAncestors);
         }
+
+
+//        private Node(Point2D point, ResizingArrayStack<Node> ancestors, boolean isVertical) {
+//            this.coords = new HashSet<>();
+//            this.isVertical = isVertical;
+//            this.key = getKey(point);
+//            initializeSegment(point, ancestors);
+//            add(point);
+//        }
 
         /**
          * Add a new point to this node
@@ -355,6 +407,54 @@ public class KdTree {
                 else out.add(new Point2D(coord, key));
             }
             return out;
+        }
+
+        private void initalizeSegment(
+                Point2D point,
+                ResizingArrayStack<Node> xAncestors,
+                ResizingArrayStack<Node> yAncestors) {
+            double x = point.x();
+            double y = point.y();
+            boolean foundMin = false;
+            boolean foundMax = false;
+            double nonKey;
+            ResizingArrayStack<Node> ancestors;
+
+            if (isVertical){
+                nonKey = y;
+                ancestors = yAncestors;
+            }
+            else {
+                nonKey = x;
+                ancestors = xAncestors;
+            }
+            for (Node ancestor : ancestors) {
+                // Ignore vertical lines
+                if (ancestor.isVertical && isVertical) {
+                    System.out.println("Should not happen!");
+                }
+
+                if (!ancestor.isVertical && !isVertical){
+                    System.out.println("Should also not happen!");
+                }
+
+                // Quit early
+                if (foundMin && foundMax) break;
+
+                // Find highest horizontal line below this point
+                if (!foundMin && ancestor.key < nonKey) {
+                    segmentMin = ancestor.key;
+                    foundMin = true;
+                }
+
+                if (!foundMax && ancestor.key > nonKey) {
+                    segmentMax = ancestor.key;
+                    foundMax = true;
+                }
+            }
+            // Segment extends to edges of unit square
+            if (!foundMin) segmentMin = 0.0;
+            if (!foundMax) segmentMax = 1.0;
         }
 
         /**
