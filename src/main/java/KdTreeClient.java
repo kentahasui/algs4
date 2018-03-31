@@ -2,6 +2,8 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import com.google.common.base.Stopwatch;
 
+import java.util.concurrent.TimeUnit;
+
 public class KdTreeClient {
 
     public static void main(String[] args) {
@@ -21,7 +23,7 @@ public class KdTreeClient {
 //            brute.insert(p);
         }
         construction.stop();
-        System.out.printf("%s seconds to insert points \n\n", construction.elapsed().getSeconds());
+        System.out.printf("%s seconds to insert points \n\n", construction.elapsed(TimeUnit.SECONDS));
 
         System.out.println("Calculating nearest for KdTree");
         int count = 0;
@@ -29,7 +31,7 @@ public class KdTreeClient {
         Point2D query = new Point2D(0.3, 0.6);
 //        Point2D query = new Point2D(0.843, 0.975);
         Stopwatch stopwatch = Stopwatch.createStarted();
-        while (stopwatch.elapsed().getSeconds() < duration) {
+        while (stopwatch.elapsed(TimeUnit.SECONDS) < duration) {
             kdtree.nearest(query);
             count++;
         }
