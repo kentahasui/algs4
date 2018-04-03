@@ -15,7 +15,6 @@ import edu.princeton.cs.algs4.DirectedCycle;
 import edu.princeton.cs.algs4.DirectedDFS;
 import edu.princeton.cs.algs4.In;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,16 +25,15 @@ public class WordNet {
     // Mapping between noun to vertices (synsets) in the Digraph
     private Map<String, List<Integer>> nounToVertices;
     // Mapping between vertex (synsets) to all nouns
-    private Map<Integer, List<String>> vertexToNouns;
+    private Map<Integer, String> vertexToNouns;
 
     // SAP to calculate Shortest Ancestral Path and closest common ancestor
     private SAP sap;
 
-
     ////////////////////////////////////////////////////////
     // Constructors and initialization methods
     ////////////////////////////////////////////////////////
-    public WordNet(String synsets, String hypernyms){
+    public WordNet(String synsets, String hypernyms) {
         validateNotNull(synsets);
         validateNotNull(hypernyms);
 
@@ -47,46 +45,47 @@ public class WordNet {
         initWordNetFromFiles(synsetsIn, hypernymsIn);
     }
 
-
     /**
      * Package-private constructor for testing (dependency injection).
      * Used for unit testing (dependency injection).
-     * @param synsetsIn A file object containing synsets (vertices)
+     *
+     * @param synsetsIn   A file object containing synsets (vertices)
      * @param hypernymsIn A file object containing hypernyms (edges).
      */
-    WordNet(In synsetsIn, In hypernymsIn){
+    private WordNet(In synsetsIn, In hypernymsIn) {
         initWordNetFromFiles(synsetsIn, hypernymsIn);
     }
 
     /**
      * Package-private constructor for testing (dependency injection).
      *
-     * @param g A Rooted Directed Acyclic Graph
+     * @param g              A Rooted Directed Acyclic Graph
      * @param nounToVertices A mapping of nouns to one or more vertices
      * @throws IllegalArgumentException if g is not rooted and acyclic.
      */
-    WordNet(Digraph g,
+    private WordNet(Digraph g,
             Map<String, List<Integer>> nounToVertices,
-            Map<Integer, List<String>> vertexToNouns){
+            Map<Integer, String> vertexToNouns) {
         initWordNetFromGraph(g, nounToVertices, vertexToNouns);
     }
 
     /**
      * Helper method to initialize WordNet from In files.
      * Used for unit testing (dependency injection).
-     * @param synsetsIn A file object containing synsets
+     *
+     * @param synsetsIn   A file object containing synsets
      * @param hypernymsIn A file object containing hypernyms
      */
-    private void initWordNetFromFiles(In synsetsIn, In hypernymsIn){
+    private void initWordNetFromFiles(In synsetsIn, In hypernymsIn) {
         // Map nouns to all vertices (synsets)
-        Map<String, List<Integer>> nounToVertices = new HashMap<>();
-        Map<Integer, List<String>> vertexToNouns = new HashMap<>();
+        Map<String, List<Integer>> nounVertices = new HashMap<>();
+        Map<Integer, String> vertexNouns = new HashMap<>();
 
         // Number of vertices, to pass as argument to Digraph constructor
         int numVertices = 0;
 
         // Construct the vertices
-        while (synsetsIn.hasNextLine()){
+        while (synsetsIn.hasNextLine()) {
             numVertices++;
             String line = synsetsIn.readLine();
             String[] fields = line.split(",");
@@ -94,27 +93,27 @@ public class WordNet {
 
             // Associate noun -> vertex for each noun in list
             String[] nouns = fields[1].split(" ");
-            for (String noun : nouns){
-                if (!nounToVertices.containsKey(noun)) {
-                    nounToVertices.put(noun, new LinkedList<>());
+            for (String noun : nouns) {
+                if (!nounVertices.containsKey(noun)) {
+                    nounVertices.put(noun, new LinkedList<>());
                 }
-                nounToVertices.get(noun).add(vertex);
+                nounVertices.get(noun).add(vertex);
             }
 
             // Associate vertex -> noun for each noun in list
-            vertexToNouns.put(vertex, Arrays.asList(nouns));
+            vertexNouns.put(vertex, fields[1]);
         }
 
         // Construct the edges
         Digraph g = new Digraph(numVertices);
-        while (hypernymsIn.hasNextLine()){
+        while (hypernymsIn.hasNextLine()) {
             String line = hypernymsIn.readLine();
             int source = -1;
             String[] fields = line.split(",");
-            for (String field : fields){
+            for (String field : fields) {
                 int v = Integer.parseInt(field);
                 // The first field is always the source vertex
-                if (source == -1){
+                if (source == -1) {
                     source = v;
                     continue;
                 }
@@ -124,49 +123,56 @@ public class WordNet {
         }
 
         // Finish setting up WordNet from explicit graph
-        initWordNetFromGraph(g, nounToVertices, vertexToNouns);
+        initWordNetFromGraph(g, nounVertices, vertexNouns);
     }
 
     /**
      * Helper method to initialize wordNet from a Graph and a mapping
      * of nouns to vertices.
-     * @param g A Rooted Directed Acyclic Graph
-     * @param nounToVertices A mapping of nouns to one or more vertices
+     *
+     * @param g              A Rooted Directed Acyclic Graph
+     * @param nounVertices A mapping of nouns to one or more vertices
+     * @param vertexNouns A mapping of vertices to one or more nouns
      * @throws IllegalArgumentException if g is not rooted and acyclic.
      */
     private void initWordNetFromGraph(Digraph g,
-                                      Map<String, List<Integer>> nounToVertices,
-                                      Map<Integer, List<String>> verticesToNouns){
+                                      Map<String, List<Integer>> nounVertices,
+                                      Map<Integer, String> vertexNouns) {
         validateRooted(g);
         validateAcyclic(g);
-        this.nounToVertices = nounToVertices;
-        this.vertexToNouns = verticesToNouns;
+        this.nounToVertices = nounVertices;
+        this.vertexToNouns = vertexNouns;
         this.sap = new SAP(g);
-        System.out.printf("Number vertices: %s. \nNumber Edges: %s\n", g.V(), g.E());
     }
 
     ////////////////////////////////////////////////////////
     // Instance methods
     ////////////////////////////////////////////////////////
-    /** Returns true if the given argument is a noun in the wordNet graph. */
-    public boolean isNoun(String noun){
+
+    /**
+     * Returns true if the given argument is a noun in the wordNet graph.
+     */
+    public boolean isNoun(String noun) {
         validateNotNull(noun);
         return nounToVertices.containsKey(noun);
     }
 
-    /** Returns all (de-duplicated) nouns in the wordNet graph */
-    public Iterable<String> nouns(){
+    /**
+     * Returns all (de-duplicated) nouns in the wordNet graph
+     */
+    public Iterable<String> nouns() {
         return nounToVertices.keySet();
     }
 
     /**
      * Length of any shortest ancestral path between any synset v of A and any synset w of B
+     *
      * @param nounA any noun in the wordNet
      * @param nounB any noun in the wordNet
      * @return length of shortest ancestral path.
      * @throws IllegalArgumentException if either argument is null or not a noun.
      */
-    public int distance(String nounA, String nounB){
+    public int distance(String nounA, String nounB) {
         validateNotNull(nounA);
         validateNotNull(nounB);
         validateNoun(nounA);
@@ -177,12 +183,13 @@ public class WordNet {
     /**
      * Returns synset of closest common ancestor to the below nouns.
      * If the ancestor synset has multiple nouns, returns any at random
+     *
      * @param nounA A noun
      * @param nounB A noun
      * @return The vertex number of the closest common ancestor (hypernym).
      * @throws IllegalArgumentException if either argument is null or not a noun.
      */
-    public String sap(String nounA, String nounB){
+    public String sap(String nounA, String nounB) {
         validateNotNull(nounA);
         validateNotNull(nounB);
         validateNoun(nounA);
@@ -190,20 +197,20 @@ public class WordNet {
         int ancestorVertex = sap.ancestor(
                 nounToVertices.get(nounA),
                 nounToVertices.get(nounB));
-        return vertexToNouns.get(ancestorVertex).iterator().next();
+        return vertexToNouns.get(ancestorVertex);
     }
 
     ////////////////////////////
     // Input Validation Methods
     ////////////////////////////
-    private void validateNotNull(String arg){
+    private void validateNotNull(String arg) {
         if (arg == null) {
             throw new IllegalArgumentException("Null argument");
         }
     }
 
-    private void validateNoun(String noun){
-        if (!isNoun(noun)){
+    private void validateNoun(String noun) {
+        if (!isNoun(noun)) {
             throw new IllegalArgumentException(
                     String.format("Argument %s is not a noun", noun));
         }
@@ -214,23 +221,24 @@ public class WordNet {
      * Validates that the specified Digraph is rooted.
      * A tree is rooted iff:
      * <ol>
-     *     <li>There exists a single vertex v with no outgoing edges </li>
-     *     <li>There is a path from every other vertex to v</li>
+     * <li>There exists a single vertex v with no outgoing edges </li>
+     * <li>There is a path from every other vertex to v</li>
      * </ol>
-     *
+     * <p>
      * Runtime:
      * O(V) + O(E) + O(V+E) = O(V+E)
+     *
      * @param g Any Digraph
      * @throws IllegalArgumentException if the graph is not rooted.
      */
-    private void validateRooted(Digraph g){
+    private void validateRooted(Digraph g) {
         String errMsg = "Graph is not rooted: ";
 
         // Find the root of the tree if there is one
         int root = -1;
-        for (int v = 0; v < g.V(); v++){
+        for (int v = 0; v < g.V(); v++) {
             // Found root: has no out degrees
-            if (g.outdegree(v) == 0){
+            if (g.outdegree(v) == 0) {
                 // More than one root = not a rooted DAG
                 if (root != -1) {
                     throw new IllegalArgumentException(
@@ -248,7 +256,7 @@ public class WordNet {
         // Reverse the tree and try to access every other vertex from the root.
         Digraph reversed = g.reverse();
         DirectedDFS reversedDfs = new DirectedDFS(reversed, root);
-        if (reversedDfs.count() < g.V()){
+        if (reversedDfs.count() < g.V()) {
             throw new IllegalArgumentException(errMsg + "All vertices do not have path to root");
         }
     }
@@ -256,12 +264,13 @@ public class WordNet {
     /**
      * Validates that the specified Digraph is acyclic.
      * Runtime: O(V+E) via DFS.
+     *
      * @param g Any Digraph
      * @throws IllegalArgumentException if g has a cycle.
      */
-    private void validateAcyclic(Digraph g){
+    private void validateAcyclic(Digraph g) {
         DirectedCycle cycleDetector = new DirectedCycle(g);
-        if (cycleDetector.hasCycle()){
+        if (cycleDetector.hasCycle()) {
             throw new IllegalArgumentException(
                     "Graph has a cycle: " + cycleDetector.cycle());
         }

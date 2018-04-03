@@ -11,29 +11,29 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
 public class Outcast {
-    private WordNet wordNet;
+    private final WordNet wordNet;
 
-    public Outcast(WordNet wordNet){
+    public Outcast(WordNet wordNet) {
         validateNotNull(wordNet);
         this.wordNet = wordNet;
     }
 
-    public String outcast(String[] nouns){
+    public String outcast(String[] nouns) {
         validateNotNull(nouns);
-        int N = nouns.length;
-        if (N < 2) throw new IllegalArgumentException("Must pass in at least two nouns");
+        int n = nouns.length;
+        if (n < 2) throw new IllegalArgumentException("Must pass in at least two nouns");
 
         // Cache max distance so far and the outcast
         int maxDistanceSoFar = -1;
         String outcast = null;
 
         // Compute distance
-        for (int i = 0; i < N; i++){
+        for (int i = 0; i < n; i++) {
             int distance = 0;
             String noun = nouns[i];
 
             // Compute distance from this noun to all other nouns
-            for (int j = 0 ; j < N; j++){
+            for (int j = 0; j < n; j++) {
                 /*
                  Avoid computing distance to self.
                  Not strictly necessary since distance will be 0.
@@ -52,14 +52,14 @@ public class Outcast {
 
         // This should never happen as long as there are at least 2 valid
         // nouns passed in.
-        if (outcast == null){
+        if (outcast == null) {
             throw new IllegalArgumentException("No outcast found!");
         }
 
         return outcast;
     }
 
-    private void validateNotNull(Object x){
+    private void validateNotNull(Object x) {
         if (x == null) throw new IllegalArgumentException("Argument cannot be null");
     }
 

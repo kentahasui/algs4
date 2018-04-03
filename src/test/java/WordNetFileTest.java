@@ -29,8 +29,8 @@ public class WordNetFileTest {
         String hypernyms = fileName("hypernyms.txt");
         WordNet wordNet = new WordNet(synsets, hypernyms);
 
-        assertThat(wordNet.sap("worm", "bird")).isEqualTo("animal");
-        assertThat(wordNet.sap("bird", "worm")).isEqualTo("animal");
+        assertThat(wordNet.sap("worm", "bird")).isEqualTo("animal animate_being beast brute creature fauna");
+        assertThat(wordNet.sap("bird", "worm")).isEqualTo("animal animate_being beast brute creature fauna");
         assertThat(wordNet.distance("worm", "bird")).isEqualTo(5);
         assertThat(wordNet.distance("bird", "worm")).isEqualTo(5);
 
