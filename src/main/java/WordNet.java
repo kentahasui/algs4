@@ -12,7 +12,6 @@
 
 import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.DirectedCycle;
-import edu.princeton.cs.algs4.DirectedDFS;
 import edu.princeton.cs.algs4.In;
 
 import java.util.HashMap;
@@ -21,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class WordNet {
-    /* IN PRODUCTION CODE, WE WOULD USE A BiGraph from Guava */
+    /* IN PRODUCTION CODE, WE WOULD USE A BiMultiMap from Guava */
     // Mapping between noun to vertices (synsets) in the Digraph
     private Map<String, List<Integer>> nounToVertices;
     // Mapping between vertex (synsets) to all nouns
@@ -41,42 +40,6 @@ public class WordNet {
         In synsetsIn = new In(synsets);
         In hypernymsIn = new In(hypernyms);
 
-        // Initialize wordNet
-        initWordNetFromFiles(synsetsIn, hypernymsIn);
-    }
-
-    /**
-     * Package-private constructor for testing (dependency injection).
-     * Used for unit testing (dependency injection).
-     *
-     * @param synsetsIn   A file object containing synsets (vertices)
-     * @param hypernymsIn A file object containing hypernyms (edges).
-     */
-    private WordNet(In synsetsIn, In hypernymsIn) {
-        initWordNetFromFiles(synsetsIn, hypernymsIn);
-    }
-
-    /**
-     * Package-private constructor for testing (dependency injection).
-     *
-     * @param g              A Rooted Directed Acyclic Graph
-     * @param nounToVertices A mapping of nouns to one or more vertices
-     * @throws IllegalArgumentException if g is not rooted and acyclic.
-     */
-    private WordNet(Digraph g,
-            Map<String, List<Integer>> nounToVertices,
-            Map<Integer, String> vertexToNouns) {
-        initWordNetFromGraph(g, nounToVertices, vertexToNouns);
-    }
-
-    /**
-     * Helper method to initialize WordNet from In files.
-     * Used for unit testing (dependency injection).
-     *
-     * @param synsetsIn   A file object containing synsets
-     * @param hypernymsIn A file object containing hypernyms
-     */
-    private void initWordNetFromFiles(In synsetsIn, In hypernymsIn) {
         // Map nouns to all vertices (synsets)
         Map<String, List<Integer>> nounVertices = new HashMap<>();
         Map<Integer, String> vertexNouns = new HashMap<>();
@@ -124,6 +87,19 @@ public class WordNet {
 
         // Finish setting up WordNet from explicit graph
         initWordNetFromGraph(g, nounVertices, vertexNouns);
+    }
+
+    /**
+     * Package-private constructor for testing (dependency injection).
+     *
+     * @param g              A Rooted Directed Acyclic Graph
+     * @param nounToVertices A mapping of nouns to one or more vertices
+     * @throws IllegalArgumentException if g is not rooted and acyclic.
+     */
+    private WordNet(Digraph g,
+            Map<String, List<Integer>> nounToVertices,
+            Map<Integer, String> vertexToNouns) {
+        initWordNetFromGraph(g, nounToVertices, vertexToNouns);
     }
 
     /**
@@ -216,7 +192,6 @@ public class WordNet {
         }
     }
 
-
     /**
      * Validates that the specified Digraph is rooted.
      * A tree is rooted iff:
@@ -251,13 +226,6 @@ public class WordNet {
         // Exception if no root
         if (root == -1) {
             throw new IllegalArgumentException(errMsg + "No vertex with outDegree 0 found");
-        }
-
-        // Reverse the tree and try to access every other vertex from the root.
-        Digraph reversed = g.reverse();
-        DirectedDFS reversedDfs = new DirectedDFS(reversed, root);
-        if (reversedDfs.count() < g.V()) {
-            throw new IllegalArgumentException(errMsg + "All vertices do not have path to root");
         }
     }
 
