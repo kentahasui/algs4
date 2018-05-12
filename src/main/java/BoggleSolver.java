@@ -9,28 +9,28 @@
 
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
-import edu.princeton.cs.algs4.TrieSET;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 public class BoggleSolver {
-    /** Dictionary of valid words */
+    /**
+     * Dictionary of valid words
+     */
     private final BoggleTrie dict = new BoggleTrie();
 
-    private void validateNotNull(Object arg){
-        if (arg == null) throw new IllegalArgumentException("Argument cannot be null");
-    }
-
-    public BoggleSolver(String[] dictionary){
+    public BoggleSolver(String[] dictionary) {
         validateNotNull(dictionary);
-        for (String word : dictionary){
+        for (String word : dictionary) {
             dict.add(word);
         }
     }
 
-    /** Returns score of a word, or 0 if the word is not in the dictionary */
-    public int scoreOf(String word){
+    /**
+     * Returns score of a word, or 0 if the word is not in the dictionary
+     */
+    public int scoreOf(String word) {
         validateNotNull(word);
         if (!dict.contains(word)) return 0;
         if (word.length() <= 2) return 0;
@@ -41,8 +41,10 @@ public class BoggleSolver {
         return 11;
     }
 
-    /** Finds all valid words in boggle board */
-    public Iterable<String> getAllValidWords(BoggleBoard board){
+    /**
+     * Finds all valid words in boggle board
+     */
+    public Iterable<String> getAllValidWords(BoggleBoard board) {
         validateNotNull(board);
         /* Valid words found so far */
         BoggleTrie found = new BoggleTrie();
@@ -66,7 +68,7 @@ public class BoggleSolver {
 
     private void getAllValidWords(BoggleBoard board, BoggleTrie found,
                                   boolean[][] marked, StringBuilder current,
-                                  int row, int col){
+                                  int row, int col) {
         // Prevent re-use of die on a given simple path
         marked[row][col] = true;
 
@@ -76,13 +78,13 @@ public class BoggleSolver {
         if (letter == 'Q') current.append('U');
 
         // Found a valid word. Add to collection of found words
-        if (current.length() >= 3 && dict.contains(current)){
+        if (current.length() >= 3 && dict.contains(current)) {
             found.add(current);
         }
 
         // Keep searching iff we can make a valid word going forward
-        if (dict.isPrefix(current.toString())){
-            for (Cell cell : adj(board, row, col)){
+        if (dict.isPrefix(current.toString())) {
+            for (Cell cell : adj(board, row, col)) {
                 // Skip already-seen columns. Maybe move this to adj? nah. We want to eventually cache adj cells
                 if (marked[cell.row][cell.col]) continue;
                 // Recursively check all valid words
@@ -98,8 +100,10 @@ public class BoggleSolver {
         }
     }
 
-    /** Returns all valid neighbors for a given cell */
-    private List<Cell> adj(BoggleBoard board, int row, int col){
+    /**
+     * Returns all valid neighbors for a given cell
+     */
+    private List<Cell> adj(BoggleBoard board, int row, int col) {
         List<Cell> cells = new ArrayList<>();
         // Row above
         cells.add(new Cell(row - 1, col - 1)); // Top left
@@ -114,7 +118,7 @@ public class BoggleSolver {
         cells.add(new Cell(row + 1, col + 1)); // Bottom right
 
         // Remove invalid cells
-        for (Iterator<Cell> iter = cells.iterator(); iter.hasNext();){
+        for (Iterator<Cell> iter = cells.iterator(); iter.hasNext();) {
             Cell c = iter.next();
             if (!isValid(board, c)) iter.remove();
         }
@@ -122,12 +126,18 @@ public class BoggleSolver {
         return cells;
     }
 
-    /** Helper method to determine whether a cell is valid on the board */
-    private boolean isValid(BoggleBoard board, Cell cell){
+    /**
+     * Helper method to determine whether a cell is valid on the board
+     */
+    private boolean isValid(BoggleBoard board, Cell cell) {
         return cell.row >= 0
                 && cell.col >= 0
                 && cell.row < board.rows()
                 && cell.col < board.cols();
+    }
+
+    private void validateNotNull(Object arg) {
+        if (arg == null) throw new IllegalArgumentException("Argument cannot be null");
     }
 
     public static void main(String[] args) {
@@ -143,16 +153,19 @@ public class BoggleSolver {
         StdOut.println("Score = " + score);
     }
 
-    /** Represents a cell in the Boggle Board (row + col) */
+    /**
+     * Represents a cell in the Boggle Board (row + col)
+     */
     private static final class Cell {
         int row;
         int col;
-        private Cell(int row, int col){
+
+        private Cell(int row, int col) {
             this.row = row;
             this.col = col;
         }
 
-        public String toString(){
+        public String toString() {
             return String.format("[%s, %s]", row, col);
         }
     }

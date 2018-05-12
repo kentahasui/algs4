@@ -218,6 +218,139 @@ public class BoggleSolverFileTest {
         assertThat(words).contains("NODE");
     }
 
+    @Test
+    public void getAllValidWords_points100(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points100.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(100);
+    }
 
+    @Test
+    public void getAllValidWords_points200(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points200.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(200);
+    }
 
+    @Test
+    public void getAllValidWords_points300(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points300.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(300);
+    }
+
+    @Test
+    public void getAllValidWords_points400(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points400.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(400);
+    }
+
+    @Test
+    public void getAllValidWords_points500(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points500.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(500);
+    }
+
+    @Test
+    public void getAllValidWords_points750(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points750.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(750);
+    }
+
+    @Test
+    public void getAllValidWords_points777(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points777.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(777);
+    }
+
+    @Test
+    public void getAllValidWords_points1000(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points1000.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(1000);
+    }
+
+    @Test
+    public void getAllValidWords_points1111(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points1111.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(1111);
+    }
+
+    @Test
+    public void getAllValidWords_points1250(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points1250.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(1250);
+    }
+
+    @Test
+    public void getAllValidWords_points1500(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points1500.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(1500);
+    }
+
+    @Test
+    public void getAllValidWords_points2000(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points2000.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(2000);
+    }
+
+    @Test
+    public void getAllValidWords_points4410(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points4410.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(4410);
+    }
+
+    @Test
+    public void getAllValidWords_points4527(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points4527.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(4527);
+    }
+
+    @Test
+    public void getAllValidWords_points4540(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points4540.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(4540);
+    }
+
+    @Test
+    public void getAllValidWords_points13464(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points13464.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(13464);
+    }
+
+    @Test
+    public void getAllValidWords_points26539(){
+        solver = newSolver("dictionary-yawl.txt");
+        board = newBoggleBoard("board-points26539.txt");
+        Iterable<String> words = solver.getAllValidWords(board);
+        assertThat(getScore(words)).isEqualTo(26539);
+    }
 }
