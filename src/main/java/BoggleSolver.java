@@ -51,6 +51,7 @@ public class BoggleSolver {
 
         /* Already marked words in this simple path. Will be reset in backtracking subroutine */
         boolean[][] marked = new boolean[board.rows()][board.cols()];
+        CellCollection[][] adj = makeAdj(board);
 
         /* Current word we are processing */
         StringBuilder current = new StringBuilder();
@@ -59,13 +60,14 @@ public class BoggleSolver {
         // Finds all simple paths that form valid words
         for (int row = 0; row < board.rows(); row++) {
             for (int col = 0; col < board.cols(); col++) {
-                getAllValidWords(board, found, marked, current, row, col);
+                getAllValidWords(board, found, marked, adj, current, row, col);
             }
         }
 
         return found;
     }
 
+    /*
     private void getAllValidWords(BoggleBoard board, BoggleTrie found,
                                   boolean[][] marked, StringBuilder current,
                                   int row, int col) {
@@ -100,9 +102,7 @@ public class BoggleSolver {
         }
     }
 
-    /**
-     * Returns all valid neighbors for a given cell
-     */
+
     private List<Cell> adj(BoggleBoard board, int row, int col) {
         List<Cell> cells = new ArrayList<>();
         // Row above
@@ -125,6 +125,7 @@ public class BoggleSolver {
 
         return cells;
     }
+*/
 
     /**
      * Helper method to determine whether a cell is valid on the board
@@ -170,11 +171,10 @@ public class BoggleSolver {
         }
     }
 
-    /*
     private void getAllValidWords(BoggleBoard board, BoggleTrie found,
                                   boolean[][] marked, CellCollection[][] adj,
                                   StringBuilder current,
-                                  int row, int col){
+                                  int row, int col) {
         // Prevent re-use of die on a given simple path
         marked[row][col] = true;
 
@@ -184,13 +184,13 @@ public class BoggleSolver {
         if (letter == 'Q') current.append('U');
 
         // Found a valid word. Add to collection of found words
-        if (current.length() >= 3 && dict.contains(current)){
+        if (current.length() >= 3 && dict.contains(current)) {
             found.add(current);
         }
 
         // Keep searching iff we can make a valid word going forward
-        if (dict.isPrefix(current.toString())){
-            for (Cell cell : adj[row][col]){
+        if (dict.isPrefix(current.toString())) {
+            for (Cell cell : adj[row][col]) {
                 // Skip already-seen columns. Maybe move this to adj? nah. We want to eventually cache adj cells
                 if (marked[cell.row][cell.col]) continue;
                 // Recursively check all valid words
@@ -206,17 +206,17 @@ public class BoggleSolver {
         }
     }
 
-    private CellCollection[][] makeAdj(BoggleBoard b){
+    private CellCollection[][] makeAdj(BoggleBoard b) {
         CellCollection[][] out = new CellCollection[b.rows()][b.cols()];
-        for(int row = 0; row < b.rows(); row++){
-            for (int col = 0; col < b.cols(); col++){
+        for (int row = 0; row < b.rows(); row++) {
+            for (int col = 0; col < b.cols(); col++) {
                 out[row][col] = makeAdj(b, row, col);
             }
         }
         return out;
     }
 
-    private CellCollection makeAdj(BoggleBoard board, int row, int col){
+    private CellCollection makeAdj(BoggleBoard board, int row, int col) {
         List<Cell> cells = new ArrayList<>();
         // Row above
         cells.add(new Cell(row - 1, col - 1)); // Top left
@@ -231,7 +231,7 @@ public class BoggleSolver {
         cells.add(new Cell(row + 1, col + 1)); // Bottom right
 
         // Remove invalid cells
-        for (Iterator<Cell> iter = cells.iterator(); iter.hasNext();){
+        for (Iterator<Cell> iter = cells.iterator(); iter.hasNext();) {
             Cell c = iter.next();
             if (!isValid(board, c)) iter.remove();
         }
@@ -239,8 +239,8 @@ public class BoggleSolver {
     }
 
     // Represents a collection of Cells
-    private static class CellCollection implements Iterable<Cell>{
-        private List<Cell> cells;
+    private static class CellCollection implements Iterable<Cell> {
+        private final List<Cell> cells;
 
         private CellCollection(List<Cell> cells) {
             this.cells = cells;
@@ -251,5 +251,4 @@ public class BoggleSolver {
             return cells.iterator();
         }
     }
-*/
 }

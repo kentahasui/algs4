@@ -166,20 +166,6 @@ public class BoggleTrie implements Iterable<String> {
         ));
     }
 
-    /*
-    public void pathBacktrack(){
-
-    }
-
-    public void pathAdd(char c){
-
-    }
-
-    public void pathSearch(char c){
-
-    }
-*/
-
     /**
      * Represents a node in the tree
      */
