@@ -334,8 +334,4 @@ public class RandomizedQueueTest {
         assertEquals(expected, results);
     }
 
-    ///////////////////////////////////
-    // Unit tests for ConcurrentModificationException()
-    ///////////////////////////////////
-
 }

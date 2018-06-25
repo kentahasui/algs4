@@ -93,13 +93,6 @@ public class BoggleSolverTimingTest {
     public void four_sowpods(){
         runTest("dictionary-sowpods.txt", true);
     }
-    
-    
-
-//    @Test
-//    public void four_zingarelli2005(){
-//        runTest("dictionary-zingarelli2005.txt", true);
-//    }
 
     @Test
     public void ten_2letters(){

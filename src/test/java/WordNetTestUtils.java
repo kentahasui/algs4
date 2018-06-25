@@ -8,20 +8,6 @@ import java.util.Map;
 /** Helper methods for Week 6: WordNet */
 public class WordNetTestUtils{
 
-//    @Test
-//    public void testReflection() throws NoSuchElementException, NoSuchMethodException {
-//        Constructor<WordNet> constructor = WordNet.class.getDeclaredConstructor(Digraph.class, Map.class, Map.class);
-//        constructor.newInstance()
-//
-//
-//        Constructor[] ctors = WordNet.class.getDeclaredConstructors();
-//
-//        for (Constructor ctor : ctors){
-//            System.out.println(ctor);
-//            System.out.println(ctor.getParameterCount());
-//        }
-//    }
-
     public static WordNet newWordNet(Digraph g,
                                      Map<String, List<Integer>> nounToVertices,
                                      Map<Integer, String> vertexToNouns){

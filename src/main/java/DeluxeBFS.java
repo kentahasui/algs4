@@ -37,8 +37,6 @@ public class DeluxeBFS {
     private int ancestor;
     private int length;
 
-//    private boolean halt;
-
     public DeluxeBFS(Digraph G) {
         this.G = G;
         vDistTo = new int[G.V()];
@@ -79,7 +77,6 @@ public class DeluxeBFS {
         wMarked.clear();
         ancestor = INVALID_VERTEX;
         length = INFINITY;
-//        halt = false;
         Queue<Integer> vQ = new Queue<>();
         Queue<Integer> wQ = new Queue<>();
 
@@ -102,10 +99,7 @@ public class DeluxeBFS {
 
         // Keep searching while the queues are not empty
         while (!vQ.isEmpty() || !wQ.isEmpty()) {
-//            if (halt) return;
             processNextVertexOnQueue(vQ, vMarked, wMarked, vDistTo, wDistTo);
-
-//            if (halt) return;
             processNextVertexOnQueue(wQ, wMarked, vMarked, wDistTo, vDistTo);
         }
     }
@@ -119,7 +113,6 @@ public class DeluxeBFS {
         wMarked.clear();
         ancestor = INVALID_VERTEX;
         length = INFINITY;
-//        halt = false;
         Queue<Integer> vQ = new Queue<>();
         Queue<Integer> wQ = new Queue<>();
 
@@ -146,11 +139,9 @@ public class DeluxeBFS {
         // Keep searching while the queues are not empty
         while (!vQ.isEmpty() || !wQ.isEmpty()) {
             // Process next vertex on v's path. Quit early if common ancestor found.
-//            if (halt) return;
             processNextVertexOnQueue(vQ, vMarked, wMarked, vDistTo, wDistTo);
 
             // Process next vertex on w's path. Quit early if common ancestor found.
-//            if (halt) return;
             processNextVertexOnQueue(wQ, wMarked, vMarked, wDistTo, vDistTo);
 
         }
@@ -188,14 +179,6 @@ public class DeluxeBFS {
 
         // Source vertex (already marked and processed)
         int source = q.dequeue();
-
-//        // Quit early once distance exceeds shortest ancestral length so far.
-//        // This means that all remaining paths will be greater than shortest
-//        // ancestral paths.
-//        if (thisDistTo[source] > length) {
-//            halt = true;
-//            return;
-//        }
 
         // Process all neighbors and add to queue
         for (int dest : G.adj(source)) {

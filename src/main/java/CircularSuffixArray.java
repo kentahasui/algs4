@@ -12,9 +12,6 @@ import edu.princeton.cs.algs4.BinaryStdOut;
 public class CircularSuffixArray {
     /* Minimum cutoff to sort via insertion sort */
     private static final int CUTOFF = 15;
-    /* Number of characters in extended ASCII alphabet */
-//    private static final int R = 256;
-
     /* Number of characters in the original string */
     private final int n;
     /* Original input string */
@@ -39,7 +36,6 @@ public class CircularSuffixArray {
         }
 
         /* Sort suffixes */
-//        lsdRadixSort();
         threeWayQuickSort(0, n - 1, 0);
     }
 
@@ -161,48 +157,5 @@ public class CircularSuffixArray {
         BinaryStdOut.write(suffixArray.index(4));
         BinaryStdOut.flush();
     }
-
-//    /** Sorts the contents of the suffix array via LSD radix sort */
-//    private void lsdRadixSort() {
-//        if (n == 1) return;
-//        // Temporary array to store intermediate results
-//        int[] temp = new int[n];
-//        // Radix sort from LSD to MSD (right to left)
-//        for (int pos = n - 1; pos >= 0; pos--) {
-//            // Count of all characters in extended ASCII alphabet (key-indexed counting)
-//            int[] count = new int[R + 1];
-//            // Increment count for character in the given pos for each suffix
-//            for (int suffixNum = 0; suffixNum < n; suffixNum++) {
-//                char c = getChar(suffixes[suffixNum], pos);
-//                count[c + 1]++; // Offset by 1 for key-indexed counting
-//            }
-//            // Aggregate the counts to use as offsets into temp
-//            for (int r = 0; r < R; r++) {
-//                count[r + 1] += count[r];
-//            }
-//            // Stably sort the entries via the char at [pos]
-//            for (int suffixNum = 0; suffixNum < n; suffixNum++) {
-//                char c = getChar(suffixes[suffixNum], pos);
-//                // Put suffix at the correct position
-//                temp[count[c]] = suffixes[suffixNum];
-//                // Deal with repeated letters
-//                count[c]++;
-//            }
-//            // Copy entries over from temp
-//            System.arraycopy(temp, 0, suffixes, 0, n);
-//        }
-//    }
-
-//    /** Utility to print circular suffix array to stdout */
-//    private void print() {
-//        for (int i = 0; i < n; i++) {
-//            int startIndex = suffixes[i];
-//            for (int pos = 0; pos < n; pos++) {
-//                System.out.print(getChar(startIndex, pos));
-//            }
-//            System.out.println();
-//        }
-//        System.out.println();
-//    }
 
 }
